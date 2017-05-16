@@ -11,4 +11,4 @@ repository = "https://github.com/Michael-F-Bryan/latex-rs"
 documentation = "https://docs.rs/latex"
 
 [dependencies]
-error-chain = "*"
+error-chain = "^0.10"
