@@ -29,11 +29,20 @@ impl Renderable for Paragraph {
         where W: Write
     {
         for element in &self.elements {
-            element.render(writer);
+            element.render(writer)?;
         }
         Ok(())
     }
 }
+
+impl<'a> From<&'a str> for Paragraph {
+    fn from(other: &'a str) -> Paragraph {
+        let mut para = Paragraph::new();
+        para.push_text(other);
+        para
+    }
+}
+
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum ParagraphElement {

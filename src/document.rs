@@ -1,13 +1,14 @@
 use std::fmt::{self, Display, Formatter, Write};
 
 use paragraph::Paragraph;
+use section::Section;
 use super::Renderable;
 use errors::*;
 
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Document {
-    class: DocumentClass,
-    preamble: Preamble,
+    pub class: DocumentClass,
+    pub preamble: Preamble,
     elements: Vec<Element>,
 }
 
@@ -17,6 +18,13 @@ impl Document {
             class: document_class,
             ..Default::default()
         }
+    }
+
+    pub fn push<E>(&mut self, element: E) -> &mut Self
+        where E: Into<Element>
+    {
+        self.elements.push(element.into());
+        self
     }
 }
 
@@ -35,6 +43,15 @@ impl Renderable for Document {
 #[derive(Clone, Debug, PartialEq)]
 pub enum Element {
     Para(Paragraph),
+    Section(Section),
+    TableOfContents,
+    TitlePage,
+}
+
+impl From<Section> for Element {
+    fn from(other: Section) -> Self {
+        Element::Section(other)
+    }
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -66,6 +83,18 @@ pub struct Preamble {
     author: Option<String>,
     title: Option<String>,
     uses: Vec<String>,
+}
+
+impl Preamble {
+    pub fn author(&mut self, name: &str) -> &mut Self {
+        self.author = Some(name.to_string());
+        self
+    }
+
+    pub fn title(&mut self, name: &str) -> &mut Self {
+        self.title = Some(name.to_string());
+        self
+    }
 }
 
 impl Renderable for Preamble {
