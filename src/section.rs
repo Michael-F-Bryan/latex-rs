@@ -1,5 +1,3 @@
-//! Module for working with `Sections`
-
 use std::io::Write;
 
 use paragraph::Paragraph;

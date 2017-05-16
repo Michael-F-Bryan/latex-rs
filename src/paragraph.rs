@@ -1,4 +1,3 @@
-//! Basic paragraph manipulation.
 use std::io::Write;
 
 use errors::*;

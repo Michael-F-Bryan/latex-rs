@@ -1,7 +1,6 @@
-//! Manipulate the overall Document.
-
 use std::fmt::{self, Display, Formatter};
 use std::io::Write;
+use std::ops::Deref;
 
 use paragraph::Paragraph;
 use section::Section;
@@ -28,6 +27,15 @@ impl Document {
     {
         self.elements.push(element.into());
         self
+    }
+}
+
+impl Deref for Document {
+    type Target = Vec<Element>;
+
+    /// A shortcut to let you iterate over the elements in the `Document`.
+    fn deref(&self) -> &Self::Target {
+        &self.elements
     }
 }
 

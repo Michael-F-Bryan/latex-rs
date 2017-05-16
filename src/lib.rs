@@ -11,10 +11,7 @@
 //! contents, and two sections.
 //!
 //! ```rust
-//! use latex::document::{DocumentClass, Element, Document};
-//! use latex::paragraph::Paragraph;
-//! use latex::section::Section;
-//! use latex::Renderable;
+//! use latex::{DocumentClass, Element, Document, Section, Renderable};
 //!
 //! # fn run() -> latex::Result<()> {
 //! let mut doc = Document::new(DocumentClass::Article);
@@ -29,11 +26,12 @@
 //!     .push(Element::ClearPage);
 //!
 //! let mut section_1 = Section::new("Section 1");
-//! section_1.push("lorem ipsum...");
+//! section_1.push("Here is some text which will be put in paragraph 1.")
+//!          .push("And here is some more text for paragraph 2.");
 //! doc.push(section_1);
 //!
 //! let mut section_2 = Section::new("Section 2");
-//! section_2.push("lorem ipsum...");
+//! section_2.push("More text...");
 //! doc.push(section_2);
 //!
 //! let mut rendered = Vec::new();
@@ -50,13 +48,13 @@
 #[macro_use]
 extern crate error_chain;
 
-pub mod paragraph;
-pub mod document;
-pub mod section;
+mod paragraph;
+mod document;
+mod section;
 
 pub use errors::*;
-pub use document::Document;
-pub use paragraph::Paragraph;
+pub use document::{Document, DocumentClass, Element, Preamble};
+pub use paragraph::{Paragraph, ParagraphElement};
 pub use section::Section;
 
 use std::io::Write;
