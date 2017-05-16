@@ -73,7 +73,6 @@
 //!
 //! [latexmk]: http://mg.readthedocs.io/latexmk.html
 
-#![feature(box_syntax)]
 #![deny(missing_docs)]
 
 #[macro_use]

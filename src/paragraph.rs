@@ -116,7 +116,7 @@ mod tests {
         let should_be = r"Hello \textbf{World}";
         let mut para = Paragraph::new();
         para.push_text("Hello ");
-        para.push(Bold(box Plain("World".to_string())));
+        para.push(Bold(Box::new(Plain("World".to_string()))));
 
         let mut rendered = vec![];
         para.render(&mut rendered).unwrap();
@@ -129,7 +129,7 @@ mod tests {
         let should_be = r"Hello \textit{World}";
         let mut para = Paragraph::new();
         para.push_text("Hello ");
-        para.push(Italic(box Plain("World".to_string())));
+        para.push(Italic(Box::new(Plain("World".to_string()))));
 
         let mut rendered = vec![];
         para.render(&mut rendered).unwrap();
