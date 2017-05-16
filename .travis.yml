@@ -1,0 +1,37 @@
+dist: trusty
+language: rust
+services: docker
+sudo: required
+env:
+  global:
+  - CRATE_NAME=latex
+  - secure: DaR8PSvZwPivdLe/u1AlMggl1SY8JAZfc9bvTNf9aVSMdhKePNnqcyuMMwNuCRrZKWUpBT20O2lYbSdZPAN8YraigaRXsK1ut4s3ACKLVOg7N1wdepPvlrfZdvyGk8GnqhNdus2D6ZFduEHLo86fx0OnLBSSNeW7AIeQRpOvnwwfxML2DbEl4BjLhpU0g+ZPdfWsCqwbzc7TWtc2HoFDmFgFtW7CTTBa7P2dbzj0ewTp5gKcGMCG+WssRFu/ZlzeVBV14YPvnJ2v4e4ghbORef5m6CuxRhJDavp7oiN9dh48LzZ1WVW4rENIdfbeVp//Gj17t4qCB/KmkR4xyRVdXTQUKHbEoohPlSW95EP/rAdOPDxtbB9UsrQ2F+f9DtGjlQXTkaJFwRTg0bA14lQTsjTavM+wQfUQJcMFwXg0u4ec8e4ac/ds65Z7JAkjnf+2dJrEay+2xzlow1hJZpLnvNTC72KfnL+UC/Ll2iFgu5Q5AjcFH9JWVplu4WsGepFIAoFWoTAGfG1Z0HISjj+xwrNbarLPIqeI84BbDj1RI4AS9ezu9jqgRwieXJLr45HiRRSkZJNguG9Ia3/iP8BhDYtw054VIliu08vjT5ig5Ln9FL34KGRAf1CizxIUYVA4/nIqLpsnJAsTlWnNMbHYTITs5u8hagwIWRaJfKLEZ38=
+matrix:
+  include:
+  - env: TARGET=i686-unknown-linux-gnu
+  - env: TARGET=x86_64-unknown-linux-musl
+  - env: TARGET=x86_64-apple-darwin
+    os: osx
+  - env: TARGET=i686-unknown-freebsd DISABLE_TESTS=1
+  - env: TARGET=x86_64-unknown-linux-gnu
+    rust: nightly
+  - env: TARGET=x86_64-apple-darwin
+    os: osx
+    rust: nightly
+before_install: set -e
+install:
+- sh ci/install.sh
+- source ~/.cargo/env || true
+script:
+- bash ci/script.sh
+after_script: set +e
+cache: cargo
+before_cache:
+- chmod -R a+r $HOME/.cargo
+branches:
+  only:
+  - "/^v\\d+\\.\\d+\\.\\d+.*$/"
+  - master
+notifications:
+  email:
+    on_success: never

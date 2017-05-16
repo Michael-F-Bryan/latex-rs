@@ -1,5 +1,7 @@
 # LaTeX-rs
 
+![latex-rs on Crates.io](https://img.shields.io/crates/v/latex.svg)
+
 An ergonomic library for programatically generating LaTeX documents and reports.
 
 This originally came from a desire to create an alternate renderer for [mdbook]

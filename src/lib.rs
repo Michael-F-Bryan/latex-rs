@@ -34,8 +34,10 @@
 //! section_2.push("More text...");
 //! doc.push(section_2);
 //!
-//! let mut rendered = Vec::new();
-//! doc.render(&mut rendered)?;
+//! let mut buffer = Vec::new();
+//! doc.render(&mut buffer)?;
+//!
+//! let rendered = String::from_utf8(buffer)?;
 //! # Ok(())
 //! # }
 //! # fn main() {
