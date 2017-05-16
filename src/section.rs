@@ -1,4 +1,8 @@
+use std::fmt::Write;
+
 use paragraph::Paragraph;
+use super::Renderable;
+use errors::*;
 
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Section {
@@ -19,5 +23,20 @@ impl Section {
     {
         self.elements.push(element.into());
         self
+    }
+}
+
+impl Renderable for Section {
+    fn render<W>(&self, writer: &mut W) -> Result<()>
+        where W: Write
+    {
+        writeln!(writer, r"\section{{{}}}", self.name)?;
+
+        for element in &self.elements {
+            element.render(writer)?;
+            writeln!(writer)?;
+        }
+
+        Ok(())
     }
 }

@@ -32,10 +32,17 @@ impl Renderable for Document {
     fn render<W>(&self, writer: &mut W) -> Result<()>
         where W: Write
     {
-        let _ = writeln!(writer, r"\documentclass{{{}}}", self.class);
+        writeln!(writer, r"\documentclass{{{}}}", self.class)?;
 
-        let _ = writeln!(writer, r"\begin{{document}}");
-        let _ = writeln!(writer, r"\end{{document}}");
+        self.preamble.render(writer)?;
+
+        writeln!(writer, r"\begin{{document}}")?;
+
+        for element in &self.elements {
+            element.render(writer)?;
+        }
+
+        writeln!(writer, r"\end{{document}}")?;
         Ok(())
     }
 }
@@ -51,6 +58,21 @@ pub enum Element {
 impl From<Section> for Element {
     fn from(other: Section) -> Self {
         Element::Section(other)
+    }
+}
+
+impl Renderable for Element {
+    fn render<W>(&self, writer: &mut W) -> Result<()>
+        where W: Write
+    {
+        match *self {
+            Element::Para(ref p) => p.render(writer)?,
+            Element::Section(ref s) => s.render(writer)?,
+            Element::TableOfContents => writeln!(writer, r"\tableofcontents")?,
+            Element::TitlePage => writeln!(writer, r"\titlepage")?,
+        }
+
+        Ok(())
     }
 }
 
