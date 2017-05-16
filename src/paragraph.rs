@@ -1,5 +1,5 @@
 //! Basic paragraph manipulation.
-use std::fmt::Write;
+use std::io::Write;
 
 use errors::*;
 use super::Renderable;
@@ -87,10 +87,10 @@ mod tests {
         let mut para = Paragraph::new();
         para.push_text("Hello World");
 
-        let mut rendered = String::new();
+        let mut rendered = vec![];
         para.render(&mut rendered).unwrap();
 
-        assert_eq!(rendered, should_be);
+        assert_eq!(String::from_utf8(rendered).unwrap(), should_be);
     }
 
     #[test]
@@ -100,10 +100,10 @@ mod tests {
         para.push_text("Hello ");
         para.push(Bold(box Plain("World".to_string())));
 
-        let mut rendered = String::new();
+        let mut rendered = vec![];
         para.render(&mut rendered).unwrap();
 
-        assert_eq!(rendered, should_be);
+        assert_eq!(String::from_utf8(rendered).unwrap(), should_be);
     }
 
     #[test]
@@ -113,10 +113,10 @@ mod tests {
         para.push_text("Hello ");
         para.push(Italic(box Plain("World".to_string())));
 
-        let mut rendered = String::new();
+        let mut rendered = vec![];
         para.render(&mut rendered).unwrap();
 
-        assert_eq!(rendered, should_be);
+        assert_eq!(String::from_utf8(rendered).unwrap(), should_be);
     }
 
     #[test]
@@ -128,9 +128,9 @@ mod tests {
             .push(InlineCode(r"\lambda".to_string()))
             .push_text(" World!");
 
-        let mut rendered = String::new();
+        let mut rendered = vec![];
         para.render(&mut rendered).unwrap();
 
-        assert_eq!(rendered, should_be);
+        assert_eq!(String::from_utf8(rendered).unwrap(), should_be);
     }
 }

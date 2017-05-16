@@ -16,14 +16,17 @@
 //! use latex::section::Section;
 //! use latex::Renderable;
 //!
+//! # fn run() -> latex::Result<()> {
 //! let mut doc = Document::new(DocumentClass::Article);
 //!
 //! // Set some metadata for the document
 //! doc.preamble.title("My Fancy Document");
 //! doc.preamble.author("Michael-F-Bryan");
 //!
-//! doc.push(Element::TitlePage);
-//! doc.push(Element::TableOfContents);
+//! doc.push(Element::TitlePage)
+//!     .push(Element::ClearPage)
+//!     .push(Element::TableOfContents)
+//!     .push(Element::ClearPage);
 //!
 //! let mut section_1 = Section::new("Section 1");
 //! section_1.push("lorem ipsum...");
@@ -33,8 +36,13 @@
 //! section_2.push("lorem ipsum...");
 //! doc.push(section_2);
 //!
-//! let mut rendered = String::new();
-//! doc.render(&mut rendered).unwrap();
+//! let mut rendered = Vec::new();
+//! doc.render(&mut rendered)?;
+//! # Ok(())
+//! # }
+//! # fn main() {
+//! # run().unwrap();
+//! # }
 //! ```
 
 #![feature(box_syntax)]
@@ -51,17 +59,19 @@ pub use document::Document;
 pub use paragraph::Paragraph;
 pub use section::Section;
 
-use std::fmt::Write;
+use std::io::Write;
 
 mod errors {
     error_chain!{
         foreign_links{
             Io(::std::io::Error);
             Fmt(::std::fmt::Error);
+            UtfError(::std::string::FromUtf8Error);
         }
     }
 }
 
+/// A generic trait for rendering AST nodes to some `Writer`.
 pub trait Renderable {
     fn render<W>(&self, writer: &mut W) -> Result<()> where W: Write;
 }

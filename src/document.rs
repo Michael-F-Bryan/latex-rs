@@ -1,4 +1,7 @@
-use std::fmt::{self, Display, Formatter, Write};
+//! Manipulate the overall Document.
+
+use std::fmt::{self, Display, Formatter};
+use std::io::Write;
 
 use paragraph::Paragraph;
 use section::Section;
@@ -53,6 +56,12 @@ pub enum Element {
     Section(Section),
     TableOfContents,
     TitlePage,
+    ClearPage,
+    UserDefined(String),
+
+    // Add a dummy element so we can expand later on without breaking stuff
+    #[doc(hidden)]
+    _Other,
 }
 
 impl From<Section> for Element {
@@ -69,7 +78,10 @@ impl Renderable for Element {
             Element::Para(ref p) => p.render(writer)?,
             Element::Section(ref s) => s.render(writer)?,
             Element::TableOfContents => writeln!(writer, r"\tableofcontents")?,
-            Element::TitlePage => writeln!(writer, r"\titlepage")?,
+            Element::TitlePage => writeln!(writer, r"\maketitle")?,
+            Element::ClearPage => writeln!(writer, r"\clearpage")?,
+            Element::UserDefined(ref s) => writeln!(writer, "{}", s)?,
+            Element::_Other => unreachable!(),
         }
 
         Ok(())
@@ -117,10 +129,23 @@ impl Preamble {
         self.title = Some(name.to_string());
         self
     }
+
+    pub fn use_package(&mut self, name: &str) -> &mut Self {
+        self.uses.push(name.to_string());
+        self
+    }
 }
 
 impl Renderable for Preamble {
     fn render<W: Write>(&self, writer: &mut W) -> Result<()> {
+        for item in &self.uses {
+            writeln!(writer, r"\usepackage{{{}}}", item)?;
+        }
+
+        if !self.uses.is_empty() && (self.title.is_some() || self.author.is_some()) {
+            writeln!(writer)?;
+        }
+
         if let Some(ref title) = self.title {
             writeln!(writer, r"\title{{{}}}", title)?;
         }
@@ -131,6 +156,7 @@ impl Renderable for Preamble {
         Ok(())
     }
 }
+
 
 #[cfg(test)]
 mod tests {
@@ -144,9 +170,42 @@ mod tests {
 "#;
 
         let doc = Document::new(DocumentClass::Article);
-        let mut rendered = String::new();
+        let mut rendered = vec![];
         doc.render(&mut rendered).unwrap();
 
-        assert_eq!(rendered, should_be);
+        assert_eq!(String::from_utf8(rendered).unwrap(), should_be);
+    }
+
+    #[test]
+    fn preamble_with_author_and_title() {
+        let should_be = r#"\title{Sample Document}
+\author{Michael-F-Bryan}
+"#;
+        let mut preamble = Preamble::default();
+        preamble.title("Sample Document").author("Michael-F-Bryan");
+
+        let mut rendered = vec![];
+        preamble.render(&mut rendered).unwrap();
+
+        assert_eq!(String::from_utf8(rendered).unwrap(), should_be);
+    }
+
+    #[test]
+    fn preamble_with_title_and_package_imports() {
+        let should_be = r#"\usepackage{amsmath}
+\usepackage{graphics}
+
+\title{Sample Document}
+"#;
+        let mut preamble = Preamble::default();
+        preamble
+            .title("Sample Document")
+            .use_package("amsmath")
+            .use_package("graphics");
+
+        let mut rendered = vec![];
+        preamble.render(&mut rendered).unwrap();
+
+        assert_eq!(String::from_utf8(rendered).unwrap(), should_be);
     }
 }

@@ -13,7 +13,9 @@ fn create_document() -> latex::Result<String> {
     doc.preamble.author("Michael-F-Bryan");
 
     doc.push(Element::TitlePage);
+    doc.push(Element::ClearPage);
     doc.push(Element::TableOfContents);
+    doc.push(Element::ClearPage);
 
     let mut section_1 = Section::new("Section 1");
     section_1.push("lorem ipsum...");
@@ -23,10 +25,10 @@ fn create_document() -> latex::Result<String> {
     section_2.push("lorem ipsum...");
     doc.push(section_2);
 
-    let mut rendered = String::new();
+    let mut rendered = vec![];
     doc.render(&mut rendered)?;
 
-    Ok(rendered)
+    Ok(String::from_utf8(rendered)?)
 }
 
 fn main() {

@@ -1,4 +1,6 @@
-use std::fmt::Write;
+//! Module for working with `Sections`
+
+use std::io::Write;
 
 use paragraph::Paragraph;
 use super::Renderable;
@@ -32,11 +34,52 @@ impl Renderable for Section {
     {
         writeln!(writer, r"\section{{{}}}", self.name)?;
 
-        for element in &self.elements {
-            element.render(writer)?;
+        if !self.elements.is_empty() {
+            // Make sure there's space between the \section{...} and the next line
             writeln!(writer)?;
         }
 
+        for element in &self.elements {
+            element.render(writer)?;
+            // LaTeX needs an empty line between paragraphs/elements otherwise
+            // it'll automatically concatenate them together
+            write!(writer, "\n\n")?;
+        }
+
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn render_blank_section() {
+        let should_be = "\\section{First Section}\n";
+        let section = Section::new("First Section");
+
+        let mut rendered = vec![];
+        section.render(&mut rendered).unwrap();
+
+        assert_eq!(String::from_utf8(rendered).unwrap(), should_be);
+    }
+
+    #[test]
+    fn section_with_paragraphs() {
+        let should_be = r#"\section{First Section}
+
+Lorem Ipsum...
+
+Hello World!
+
+"#;
+        let mut section = Section::new("First Section");
+        section.push("Lorem Ipsum...").push("Hello World!");
+
+        let mut rendered = vec![];
+        section.render(&mut rendered).unwrap();
+
+        assert_eq!(String::from_utf8(rendered).unwrap(), should_be);
     }
 }
