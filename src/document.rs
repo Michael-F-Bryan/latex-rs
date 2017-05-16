@@ -7,14 +7,19 @@ use section::Section;
 use super::Renderable;
 use errors::*;
 
+/// The root Document node.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Document {
+    /// The document class.
     pub class: DocumentClass,
+    /// The `Document`'s preamble.
     pub preamble: Preamble,
-    elements: Vec<Element>,
+    /// The various elements inside this `Document`.
+    pub elements: Vec<Element>,
 }
 
 impl Document {
+    /// Create a new `Document` with the specified `DocumentClass`.
     pub fn new(document_class: DocumentClass) -> Self {
         Document {
             class: document_class,
@@ -22,6 +27,9 @@ impl Document {
         }
     }
 
+    /// Add an element to the `Document`.
+    ///
+    /// For convenience, Elements are automatically converted using `into()`.
     pub fn push<E>(&mut self, element: E) -> &mut Self
         where E: Into<Element>
     {
@@ -58,13 +66,26 @@ impl Renderable for Document {
     }
 }
 
+/// The major elements in a `Document`.
 #[derive(Clone, Debug, PartialEq)]
 pub enum Element {
+    /// A bare paragraph.
+    ///
+    /// # Note
+    ///
+    /// You probably don't want to add a paragraph directly to your document,
+    /// instead add it to a `Section` so that if you are walking the AST later
+    /// on things make sense.
     Para(Paragraph),
+    /// A section.
     Section(Section),
+    /// The table of contents.
     TableOfContents,
+    /// The title page.
     TitlePage,
+    /// Clear the page.
     ClearPage,
+    /// Any other element.
     UserDefined(String),
 
     // Add a dummy element so we can expand later on without breaking stuff
@@ -96,7 +117,9 @@ impl Renderable for Element {
     }
 }
 
+/// The kind of Document being generated.
 #[derive(Clone, Debug, PartialEq)]
+#[allow(missing_docs)]
 pub enum DocumentClass {
     Article,
     Book,
@@ -120,6 +143,7 @@ impl Display for DocumentClass {
 }
 
 
+/// A node representing the document's preamble.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Preamble {
     author: Option<String>,
@@ -128,16 +152,19 @@ pub struct Preamble {
 }
 
 impl Preamble {
+    /// Set the document's author.
     pub fn author(&mut self, name: &str) -> &mut Self {
         self.author = Some(name.to_string());
         self
     }
 
+    /// Set the document title.
     pub fn title(&mut self, name: &str) -> &mut Self {
         self.title = Some(name.to_string());
         self
     }
 
+    /// Add a package import to the preamble.
     pub fn use_package(&mut self, name: &str) -> &mut Self {
         self.uses.push(name.to_string());
         self

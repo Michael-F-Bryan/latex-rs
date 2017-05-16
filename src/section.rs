@@ -4,6 +4,7 @@ use paragraph::Paragraph;
 use super::Renderable;
 use errors::*;
 
+/// A document Section.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Section {
     name: String,
@@ -11,6 +12,7 @@ pub struct Section {
 }
 
 impl Section {
+    /// Create a new section with the specified name.
     pub fn new(name: &str) -> Section {
         Section {
             name: name.to_string(),
@@ -18,6 +20,7 @@ impl Section {
         }
     }
 
+    /// Add an element to the Section.
     pub fn push<I>(&mut self, element: I) -> &mut Self
         where I: Into<Paragraph>
     {

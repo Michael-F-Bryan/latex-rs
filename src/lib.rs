@@ -44,6 +44,7 @@
 //! ```
 
 #![feature(box_syntax)]
+#![deny(missing_docs)]
 
 #[macro_use]
 extern crate error_chain;
@@ -62,14 +63,15 @@ use std::io::Write;
 mod errors {
     error_chain!{
         foreign_links{
-            Io(::std::io::Error);
-            Fmt(::std::fmt::Error);
-            UtfError(::std::string::FromUtf8Error);
+            Io(::std::io::Error) #[doc = "Wrapper around `std::io::Error`"];
+            Fmt(::std::fmt::Error) #[doc = "A formatting error"];
+            UtfError(::std::string::FromUtf8Error) #[doc = "A UTF8 conversion error"];
         }
     }
 }
 
 /// A generic trait for rendering AST nodes to some `Writer`.
 pub trait Renderable {
+    /// Render the item.
     fn render<W>(&self, writer: &mut W) -> Result<()> where W: Write;
 }
