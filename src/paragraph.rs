@@ -1,3 +1,8 @@
+//! Basic paragraph manipulation.
+use std::fmt::Write;
+
+use errors::*;
+use super::Renderable;
 
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Paragraph {
@@ -7,14 +12,6 @@ pub struct Paragraph {
 impl Paragraph {
     pub fn new() -> Self {
         Default::default()
-    }
-
-    pub fn render(&self) -> String {
-        self.elements
-            .iter()
-            .map(|e| e.render())
-            .collect::<Vec<_>>()
-            .join("")
     }
 
     pub fn push(&mut self, elem: ParagraphElement) -> &mut Self {
@@ -27,20 +24,45 @@ impl Paragraph {
     }
 }
 
+impl Renderable for Paragraph {
+    fn render<W>(&self, writer: &mut W) -> Result<()>
+        where W: Write
+    {
+        for element in &self.elements {
+            element.render(writer);
+        }
+        Ok(())
+    }
+}
+
 #[derive(Clone, Debug, PartialEq)]
 pub enum ParagraphElement {
     Plain(String),
     Bold(Box<ParagraphElement>),
     Italic(Box<ParagraphElement>),
+    InlineCode(String),
 }
 
-impl ParagraphElement {
-    fn render(&self) -> String {
+impl Renderable for ParagraphElement {
+    fn render<W>(&self, writer: &mut W) -> Result<()>
+        where W: Write
+    {
         match *self {
-            ParagraphElement::Plain(ref s) => s.clone(),
-            ParagraphElement::Bold(ref e) => format!(r"\textbf{{{}}}", e.render()),
-            ParagraphElement::Italic(ref e) => format!(r"\textit{{{}}}", e.render()),
+            ParagraphElement::Plain(ref s) => write!(writer, "{}", s)?,
+            ParagraphElement::InlineCode(ref s) => write!(writer, "${}$", s)?,
+            ParagraphElement::Bold(ref e) => {
+                write!(writer, r"\textbf{{")?;
+                e.render(writer)?;
+                write!(writer, "}}")?;
+            }
+            ParagraphElement::Italic(ref e) => {
+                write!(writer, r"\textit{{")?;
+                e.render(writer)?;
+                write!(writer, "}}")?;
+            }
         }
+
+        Ok(())
     }
 }
 
@@ -56,7 +78,8 @@ mod tests {
         let mut para = Paragraph::new();
         para.push_text("Hello World");
 
-        let rendered = para.render();
+        let mut rendered = String::new();
+        para.render(&mut rendered).unwrap();
 
         assert_eq!(rendered, should_be);
     }
@@ -68,7 +91,8 @@ mod tests {
         para.push_text("Hello ");
         para.push(Bold(box Plain("World".to_string())));
 
-        let rendered = para.render();
+        let mut rendered = String::new();
+        para.render(&mut rendered).unwrap();
 
         assert_eq!(rendered, should_be);
     }
@@ -80,7 +104,23 @@ mod tests {
         para.push_text("Hello ");
         para.push(Italic(box Plain("World".to_string())));
 
-        let rendered = para.render();
+        let mut rendered = String::new();
+        para.render(&mut rendered).unwrap();
+
+        assert_eq!(rendered, should_be);
+    }
+
+    #[test]
+    fn inline_code() {
+        let should_be = r"Hello $\lambda$ World!";
+
+        let mut para = Paragraph::new();
+        para.push_text("Hello ")
+            .push(InlineCode(r"\lambda".to_string()))
+            .push_text(" World!");
+
+        let mut rendered = String::new();
+        para.render(&mut rendered).unwrap();
 
         assert_eq!(rendered, should_be);
     }
