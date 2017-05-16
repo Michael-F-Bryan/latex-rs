@@ -42,6 +42,34 @@
 //! # run().unwrap();
 //! # }
 //! ```
+//!
+//! This will generate the LaTeX source for you, so all you need to do now is
+//! write it to a file and then run your favourite tex build tool on it (I
+//! personally use [latexmk]).
+//!
+//! ```rust,no_run
+//! use std::fs::File;
+//! use std::io::Write;
+//! use std::process::Command;
+//!
+//! # fn run() -> latex::Result<()> {
+//! # let rendered = String::new();
+//! // Write our rendered text to a file
+//! let mut f = File::open("report.tex")?;
+//! write!(f, "{}", rendered)?;
+//!
+//! // Then call latexmk on it
+//! let exit_status = Command::new("latexmk").arg("report.tex").status()?;
+//!
+//! assert!(exit_status.success());
+//! # Ok(())
+//! # }
+//! # fn main() {
+//! # run().unwrap();
+//! # }
+//! ```
+//!
+//! [latexmk]: http://mg.readthedocs.io/latexmk.html
 
 #![feature(box_syntax)]
 #![deny(missing_docs)]
