@@ -16,39 +16,28 @@ along to whatever you're using to compile LaTeX to PDF.
 
 ```rust
 extern crate latex;
+
 use latex::{DocumentClass, Element, Document, Section, Renderable};
 
 let mut doc = Document::new(DocumentClass::Article);
 
 // Set some metadata for the document
-doc.preamble.title("My Fancy Document")
-            .author("Michael-F-Bryan");
+doc.preamble.title("My Fancy Document");
+doc.preamble.author("Michael-F-Bryan");
 
 doc.push(Element::TitlePage)
-   .push(Element::ClearPage)
-   .push(Element::TableOfContents)
-   .push(Element::ClearPage);
+    .push(Element::ClearPage)
+    .push(Element::TableOfContents)
+    .push(Element::ClearPage);
 
 let mut section_1 = Section::new("Section 1");
-section_1.push("Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-Aenean sagittis ante diam, non blandit arcu dignissim dictum. Ut
-interdum dapibus odio, ac sagittis quam euismod a. Fusce auctor tempor
-ante, et congue lorem ullamcorper vel. Aliquam vehicula nisl sit amet
-orci tempus, non porta libero vestibulum. Aliquam posuere odio sed
-tristique scelerisque. Donec eget ex faucibus, placerat neque vitae,
-consectetur augue. Etiam sed ex id nibh vulputate tempus id nec nisl.")
-    .push("Proin lacinia fringilla elit eu dapibus. In quis metus vel diam
-laoreet facilisis. Nullam tincidunt metus eu mi rutrum, sit amet congue
-mauris tincidunt. Sed suscipit ornare lacus vitae convallis. Suspendisse
-tincidunt, est ut dictum consectetur, erat felis euismod lorem, vel
-scelerisque mi justo at dolor. ");
-
+section_1
+    .push("Here is some text which will be put in paragraph 1.")
+    .push("And here is some more text for paragraph 2.");
 doc.push(section_1);
 
 let mut section_2 = Section::new("Section 2");
-section_2.push("Ut quis mauris orci. Vivamus pellentesque sollicitudin libero,
-nec pharetra eros dapibus vitae. Mauris nec neque eget nibh feugiat
-vestibulum. Vivamus in ante sed purus rhoncus euismod. ");
+section_2.push("More text...");
 doc.push(section_2);
 
 let mut buffer = vec![];
