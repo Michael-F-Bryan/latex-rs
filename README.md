@@ -59,4 +59,5 @@ This crate is still very young so pull requests and issues are welcome! If
 you there's something you want then create an [issue] and I'll try to implement
 it.
 
-[issue]: insert_issue_tracker_here
+[issue]: https://github.com/Michael-F-Bryan/latex-rs/issues/new
+[mdbook]: https://github.com/azerupi/mdBook
