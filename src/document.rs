@@ -4,6 +4,7 @@ use std::ops::Deref;
 
 use paragraph::Paragraph;
 use section::Section;
+use equations::Align;
 use errors::*;
 use lists::List;
 use super::Renderable;
@@ -86,7 +87,18 @@ pub enum Element {
     TitlePage,
     /// Clear the page.
     ClearPage,
+    /// An `align` environment for containing a bunch of equations.
+    Align(Align),
+
+    /// A generic environment and its lines.
+    Environment(String, Vec<String>),
+
     /// Any other element.
+    ///
+    /// This can be used as an escape hatch if the particular element you want
+    /// isn't directly supported or if you need to do something which isn't
+    /// easily expressed any other way. You simply provide the raw string you
+    /// want and it will be rendered unchanged in the final document.
     UserDefined(String),
     /// A list.
     List(List),
@@ -113,6 +125,15 @@ impl Renderable for Element {
             Element::TitlePage => writeln!(writer, r"\maketitle")?,
             Element::ClearPage => writeln!(writer, r"\clearpage")?,
             Element::UserDefined(ref s) => writeln!(writer, "{}", s)?,
+            Element::Align(ref equations) => equations.render(writer)?,
+
+            Element::Environment(ref name, ref lines) => {
+                writeln!(writer, r"\begin{{{}}}", name)?;
+                for line in lines {
+                    writeln!(writer, "{}", line)?;
+                }
+                writeln!(writer, r"\end{{{}}}", name)?;
+            }
             Element::List(ref list) => list.render(writer)?,
 
             Element::_Other => unreachable!(),
