@@ -81,11 +81,13 @@ extern crate error_chain;
 mod paragraph;
 mod document;
 mod section;
+mod lists;
 
 pub use errors::*;
 pub use document::{Document, DocumentClass, Element, Preamble};
 pub use paragraph::{Paragraph, ParagraphElement};
 pub use section::Section;
+pub use lists::List;
 
 use std::io::Write;
 

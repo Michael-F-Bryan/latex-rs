@@ -3,7 +3,7 @@
 [![Build Status](https://travis-ci.org/Michael-F-Bryan/latex-rs.svg?branch=master)](https://travis-ci.org/Michael-F-Bryan/latex-rs)
 [![Crates.io](https://img.shields.io/crates/l/latex.svg)](https://crates.io/crates/latex)
 [![Docs.rs](https://docs.rs/latex/badge.svg)](https://docs.rs/latex/)
-![latex-rs on Crates.io](https://img.shields.io/crates/v/latex.svg)
+[![latex-rs on Crates.io](https://img.shields.io/crates/v/latex.svg)](https://crates.io/crates/latex)
 
 An ergonomic library for programatically generating LaTeX documents and reports.
 
