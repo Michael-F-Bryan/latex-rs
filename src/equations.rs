@@ -127,6 +127,16 @@ impl<'a> From<&'a str> for Equation {
 }
 
 
+impl<'a> From<&'a str> for Align {
+    /// Convert a string into a single equation wrapped in an `align`.
+    fn from(other: &'a str) -> Align {
+        let mut eq = Align::new();
+        eq.push(other);
+        eq
+    }
+}
+
+
 #[cfg(test)]
 mod tests {
     use super::*;

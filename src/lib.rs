@@ -15,11 +15,11 @@
 //!
 //! # Examples
 //!
-//! Here's how to create a basic document containing a title page, a table of
-//! contents, and two sections.
+//! Here's how to create a reasonably complex document containing a title page,
+//! a table of contents, some equations, and two sections.
 //!
 //! ```rust
-//! use latex::{DocumentClass, Element, Document, Section, Renderable};
+//! use latex::{DocumentClass, Element, Document, Section, Renderable, Align};
 //!
 //! # fn run() -> latex::Result<()> {
 //! let mut doc = Document::new(DocumentClass::Article);
@@ -39,7 +39,10 @@
 //! doc.push(section_1);
 //!
 //! let mut section_2 = Section::new("Section 2");
-//! section_2.push("More text...");
+//!
+//! section_2.push("More text...")
+//!          .push(Align::from("y &= mx + c"));
+//!
 //! doc.push(section_2);
 //!
 //! let mut buffer = Vec::new();

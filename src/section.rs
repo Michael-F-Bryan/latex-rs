@@ -1,6 +1,6 @@
 use std::io::Write;
 
-use paragraph::Paragraph;
+use document::Element;
 use super::Renderable;
 use errors::*;
 
@@ -8,7 +8,7 @@ use errors::*;
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Section {
     name: String,
-    elements: Vec<Paragraph>,
+    elements: Vec<Element>,
 }
 
 impl Section {
@@ -22,7 +22,7 @@ impl Section {
 
     /// Add an element to the Section.
     pub fn push<I>(&mut self, element: I) -> &mut Self
-        where I: Into<Paragraph>
+        where I: Into<Element>
     {
         self.elements.push(element.into());
         self
@@ -44,7 +44,7 @@ impl Renderable for Section {
             element.render(writer)?;
             // LaTeX needs an empty line between paragraphs/elements otherwise
             // it'll automatically concatenate them together
-            write!(writer, "\n\n")?;
+            write!(writer, "\n")?;
         }
 
         Ok(())
