@@ -4,6 +4,12 @@
 //! generating LaTeX reports and documents (which will probably then be
 //! compiled to PDF) as easy as possible.
 //!
+//! This library tries to use Rust's powerful type system to give your document
+//! additional semantic meaning and compile-time typesafety. For example,
+//! [`Element::ClearPage`] could easily be implemented using
+//! `Element::UserDefined(r"\clearpage")`, however it is common enough to
+//! justify its own variant to make the generating code easier to read.
+//!
 //!
 //! # Examples
 //!
@@ -72,6 +78,7 @@
 //! ```
 //!
 //! [latexmk]: http://mg.readthedocs.io/latexmk.html
+//! [`ClearPage`]: enum.Element.html
 
 #![deny(missing_docs)]
 
@@ -81,11 +88,13 @@ extern crate error_chain;
 mod paragraph;
 mod document;
 mod section;
+mod equations;
 
 pub use errors::*;
 pub use document::{Document, DocumentClass, Element, Preamble};
 pub use paragraph::{Paragraph, ParagraphElement};
 pub use section::Section;
+pub use equations::{Equations, Equation};
 
 use std::io::Write;
 
