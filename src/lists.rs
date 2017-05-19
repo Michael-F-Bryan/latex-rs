@@ -1,4 +1,6 @@
 use std::io::Write;
+use std::slice::Iter;
+use std::ops::Deref;
 
 use super::Renderable;
 use errors::*;
@@ -6,6 +8,13 @@ use errors::*;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Item(String);
+
+impl Deref for Item {
+    type Target = str;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
 
 /// Which kind of list should be used?
 #[derive(Clone, Debug, PartialEq)]
@@ -26,6 +35,29 @@ impl ListKind {
 }
 
 /// A list (either dot points or numbered).
+///
+/// # Examples
+///
+/// A list can be used like so:
+///
+/// ```rust
+/// use latex::{List, ListKind};
+///
+/// let mut list = List::new(ListKind::Itemize);
+/// list.push("Hello").push("From").push("Some").push("Dot-points");
+/// ```
+///
+/// Calling the `render()` method on the list will then give something like
+/// this:
+///
+/// ```tex
+/// \begin{itemize}
+/// \item Hello
+/// \item From
+/// \item Some
+/// \item Dot-points
+/// \end{itemize}
+/// ```
 #[derive(Clone, Debug, PartialEq)]
 pub struct List {
     /// The kind of list this is.
@@ -46,6 +78,11 @@ impl List {
     pub fn push<S: AsRef<str>>(&mut self, item: S) -> &mut Self {
         self.items.push(Item(item.as_ref().to_string()));
         self
+    }
+
+    /// Iterate over the items in the list.
+    pub fn iter(&self) -> Iter<Item> {
+        self.items.iter()
     }
 }
 
