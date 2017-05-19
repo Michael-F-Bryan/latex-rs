@@ -1,6 +1,5 @@
 use std::io::Write;
 use std::slice::Iter;
-use std::ops::Deref;
 
 use super::Renderable;
 use errors::*;
