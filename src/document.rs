@@ -4,8 +4,9 @@ use std::ops::Deref;
 
 use paragraph::Paragraph;
 use section::Section;
-use super::Renderable;
 use errors::*;
+use lists::List;
+use super::Renderable;
 
 /// The root Document node.
 #[derive(Clone, Debug, Default, PartialEq)]
@@ -87,6 +88,8 @@ pub enum Element {
     ClearPage,
     /// Any other element.
     UserDefined(String),
+    /// A list.
+    List(List),
 
     // Add a dummy element so we can expand later on without breaking stuff
     #[doc(hidden)]
@@ -110,6 +113,8 @@ impl Renderable for Element {
             Element::TitlePage => writeln!(writer, r"\maketitle")?,
             Element::ClearPage => writeln!(writer, r"\clearpage")?,
             Element::UserDefined(ref s) => writeln!(writer, "{}", s)?,
+            Element::List(ref list) => list.render(writer)?,
+
             Element::_Other => unreachable!(),
         }
 
