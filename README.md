@@ -15,8 +15,7 @@ there which suited my use case, I made my own.
 
 ## Getting Started
 
-There are some fairly detailed [examples][examples] (plus
-[here][equation-examples] and [here][list-examples]) in the documentation,
+There are some fairly detailed [examples][examples] in the documentation,
 although this is what your typical "Hello World" would look like:
 
 ```rust
@@ -36,5 +35,3 @@ it.
 [issue]: https://github.com/Michael-F-Bryan/latex-rs/issues/new
 [mdbook]: https://github.com/azerupi/mdBook
 [examples]: https://docs.rs/latex#examples
-[equation-examples]: https://docs.rs/latex/struct.Equation.html#examples
-[list-examples]: https://docs.rs/latex/struct.List.html#examples
