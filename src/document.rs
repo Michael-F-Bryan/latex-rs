@@ -7,6 +7,8 @@ use section::Section;
 use super::Renderable;
 use equations::Equations;
 use errors::*;
+use lists::List;
+use super::Renderable;
 
 /// The root Document node.
 #[derive(Clone, Debug, Default, PartialEq)]
@@ -99,6 +101,8 @@ pub enum Element {
     /// easily expressed any other way. You simply provide the raw string you
     /// want and it will be rendered unchanged in the final document.
     UserDefined(String),
+    /// A list.
+    List(List),
 
     // Add a dummy element so we can expand later on without breaking stuff
     #[doc(hidden)]
@@ -131,6 +135,8 @@ impl Renderable for Element {
                 }
                 writeln!(writer, r"\end{{{}}}", name)?;
             }
+            Element::List(ref list) => list.render(writer)?,
+
             Element::_Other => unreachable!(),
         }
 

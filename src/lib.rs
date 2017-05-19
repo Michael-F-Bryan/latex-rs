@@ -88,12 +88,14 @@ extern crate error_chain;
 mod paragraph;
 mod document;
 mod section;
+mod lists;
 mod equations;
 
 pub use errors::*;
 pub use document::{Document, DocumentClass, Element, Preamble};
 pub use paragraph::{Paragraph, ParagraphElement};
 pub use section::Section;
+pub use lists::{List, ListKind};
 pub use equations::{Equations, Equation};
 
 use std::io::Write;
