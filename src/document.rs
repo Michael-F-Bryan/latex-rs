@@ -4,7 +4,7 @@ use std::ops::Deref;
 
 use paragraph::Paragraph;
 use section::Section;
-use equations::Equations;
+use equations::Align;
 use errors::*;
 use lists::List;
 use super::Renderable;
@@ -88,7 +88,7 @@ pub enum Element {
     /// Clear the page.
     ClearPage,
     /// An `align` environment for containing a bunch of equations.
-    Align(Equations),
+    Align(Align),
 
     /// A generic environment and its lines.
     Environment(String, Vec<String>),

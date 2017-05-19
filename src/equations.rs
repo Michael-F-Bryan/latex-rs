@@ -85,13 +85,13 @@ impl Renderable for Equation {
 
 /// A list of equations to be used in an `align` environment.
 #[derive(Clone, Debug, Default, PartialEq)]
-pub struct Equations {
+pub struct Align {
     items: Vec<Equation>,
 }
 
-impl Equations {
+impl Align {
     /// Create an empty equation list.
-    pub fn new() -> Equations {
+    pub fn new() -> Align {
         Default::default()
     }
 
@@ -107,7 +107,7 @@ impl Equations {
     }
 }
 
-impl Renderable for Equations {
+impl Renderable for Align {
     fn render<W>(&self, writer: &mut W) -> Result<()>
         where W: Write
     {
@@ -137,7 +137,7 @@ mod tests {
     #[test]
     fn render_empty_align() {
         let should_be = "\\begin{align}\n\\end{align}\n";
-        let equations = Equations::new();
+        let equations = Align::new();
 
         let mut buffer = Vec::new();
         equations.render(&mut buffer).unwrap();
@@ -163,7 +163,7 @@ E &= m c^2 \label{eq:mass-energy-equivalence} \\
 y &= m x + c \\
 \end{align}
 ";
-        let mut equations = Equations::new();
+        let mut equations = Align::new();
 
         let mut eq = Equation::new("E &= m c^2");
         eq.label("eq:mass-energy-equivalence");
