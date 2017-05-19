@@ -13,8 +13,7 @@ use errors::*;
 /// Creating one is as simple as using the constructor.
 ///
 /// ```rust
-/// use latex::Equation;
-///
+/// # use latex::Equation;
 /// let eq = Equation::new("y &= mx + c");
 /// ```
 ///
@@ -22,12 +21,11 @@ use errors::*;
 /// `into()`.
 ///
 /// ```rust
-/// use latex::Equation;
-///
+/// # use latex::Equation;
 /// let eq: Equation = "y &= mx + c".into();
 /// ```
 ///
-/// You can assign a `label` to an equation so it can be referenced later.
+/// You can also assign a `label` to an equation so it can be referenced later.
 ///
 /// ```rust
 /// # use latex::Equation;

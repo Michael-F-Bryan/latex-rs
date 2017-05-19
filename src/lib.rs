@@ -6,9 +6,11 @@
 //!
 //! This library tries to use Rust's powerful type system to give your document
 //! additional semantic meaning and compile-time typesafety. For example,
-//! [`Element::ClearPage`] could easily be implemented using
-//! `Element::UserDefined(r"\clearpage")`, however it is common enough to
-//! justify its own variant to make the generating code easier to read.
+//! [`Align`] *could* easily be implemented with `Element::Environment`, where
+//! each equation is written in as-is and appended to the list of lines.
+//! However by pulling it into its own type you gain the ability to do
+//! equation-specific manipulations and have nice abstractions like an
+//! `Equation`'s [`label()`] method.
 //!
 //!
 //! # Examples
@@ -78,7 +80,8 @@
 //! ```
 //!
 //! [latexmk]: http://mg.readthedocs.io/latexmk.html
-//! [`ClearPage`]: enum.Element.html
+//! [`Align`]: struct.Align.html
+//! [`label()`]: struct.Equation.html#method.label
 
 #![deny(missing_docs)]
 

@@ -31,7 +31,9 @@ impl Document {
 
     /// Add an element to the `Document`.
     ///
-    /// For convenience, Elements are automatically converted using `into()`.
+    /// To make this work as seamlessly as possible, it will accept anything
+    /// which can be converted into an `Element` using `into()` and supports
+    /// the builder pattern with method chaining.
     pub fn push<E>(&mut self, element: E) -> &mut Self
         where E: Into<Element>
     {
@@ -69,6 +71,10 @@ impl Renderable for Document {
 }
 
 /// The major elements in a `Document`.
+///
+/// For convenience, any variant which wraps a struct will implement `From` for
+/// that struct. Meaning you can create an `Element::Para` node just by using
+/// `some_paragraph.into()`.
 #[derive(Clone, Debug, PartialEq)]
 pub enum Element {
     /// A bare paragraph.
@@ -108,9 +114,48 @@ pub enum Element {
     _Other,
 }
 
+impl From<Paragraph> for Element {
+    fn from(other: Paragraph) -> Self {
+        Element::Para(other)
+    }
+}
+
+impl<'a> From<&'a str> for Element {
+    /// Create an arbitrary unescaped element from a string.
+    fn from(other: &'a str) -> Self {
+        Element::UserDefined(other.to_string())
+    }
+}
+
+impl From<List> for Element {
+    fn from(other: List) -> Self {
+        Element::List(other)
+    }
+}
+
+impl From<Align> for Element {
+    fn from(other: Align) -> Self {
+        Element::Align(other)
+    }
+}
+
 impl From<Section> for Element {
     fn from(other: Section) -> Self {
         Element::Section(other)
+    }
+}
+
+impl<S, I> From<(S, I)> for Element
+    where S: AsRef<str>,
+          I: IntoIterator,
+          I::Item: AsRef<str>
+{
+    /// Converts a tuple of name and a list of lines into an
+    /// `Element::Environment`.
+    fn from(other: (S, I)) -> Self {
+        let (name, lines) = other;
+        Element::Environment(name.as_ref().to_string(),
+                             lines.into_iter().map(|s| s.as_ref().to_string()).collect())
     }
 }
 
