@@ -4,7 +4,6 @@ use std::ops::Deref;
 
 use paragraph::Paragraph;
 use section::Section;
-use super::Renderable;
 use equations::Equations;
 use errors::*;
 use lists::List;
