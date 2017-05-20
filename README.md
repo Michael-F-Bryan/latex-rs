@@ -15,8 +15,11 @@ there which suited my use case, I made my own.
 
 ## Getting Started
 
-There are some fairly detailed [examples][examples] in the documentation,
-although this is what your typical "Hello World" would look like:
+Most of the types used to construct a `Document` have examples showing how they
+can be used and roughly what they'll generate, however for a more in-depth
+example check out the [complex example] in the `examples/` directory.
+
+This is what your typical "Hello World" would look like:
 
 ```rust
 use latex::{Document, DocumentClass, Element};
@@ -55,4 +58,5 @@ it.
 
 [issue]: https://github.com/Michael-F-Bryan/latex-rs/issues/new
 [mdbook]: https://github.com/azerupi/mdBook
-[examples]: https://docs.rs/latex#examples
+[complex examples]: https://github.com/Michael-F-Bryan/latex-rs/blob/master/examples/complex.rs
+
