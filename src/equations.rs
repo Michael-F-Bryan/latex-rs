@@ -95,6 +95,28 @@ impl Equation {
 ///
 /// Using this environment requires you to include the `amsmath` package in
 /// your preamble.
+///
+///
+/// # Examples
+///
+/// The typical workflow is to create an empty `Align` and then add equations
+/// to it.
+///
+/// ```rust
+/// use latex::{Align, Equation};
+/// let mut equations = Align::new();
+/// equations.push("y &= mx + c")
+///          .push(Equation::with_label("emc2", "E &= m c^2"));
+/// ```
+///
+/// When rendered, you should get something like this:
+///
+/// ```tex
+/// \begin{align}
+/// y &= mx + c \\
+/// E &= m c^2 \\
+/// \end{align}
+/// ```
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Align {
     items: Vec<Equation>,

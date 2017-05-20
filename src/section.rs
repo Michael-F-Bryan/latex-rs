@@ -3,6 +3,10 @@ use std::slice::Iter;
 use document::Element;
 
 /// A document Section.
+///
+/// Like the `Document` type, a `Section` is more or less just a collection of
+/// `Element`s. When rendered it will start with `\section{Section Name}` and
+/// then each element will be rendered in turn.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Section {
     /// The name of the section.

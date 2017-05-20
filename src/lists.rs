@@ -2,6 +2,8 @@ use std::slice::Iter;
 use std::ops::Deref;
 
 /// Wrapper around a single list item.
+///
+/// An item will usually be rendered with `\item` followed by the item's text.
 #[derive(Clone, Debug, PartialEq)]
 pub struct Item(pub String);
 

@@ -66,7 +66,7 @@ impl<W> Visitor for Printer<W>
     fn visit_paragraph_element(&mut self, element: &ParagraphElement) -> Result<()> {
         match *element {
             ParagraphElement::Plain(ref s) => write!(self.writer, "{}", s)?,
-            ParagraphElement::InlineCode(ref s) => write!(self.writer, "${}$", s)?,
+            ParagraphElement::InlineMath(ref s) => write!(self.writer, "${}$", s)?,
             ParagraphElement::Bold(ref e) => {
                 write!(self.writer, r"\textbf{{")?;
                 self.visit_paragraph_element(e)?;
@@ -255,7 +255,7 @@ mod tests {
 
         let mut para = Paragraph::new();
         para.push_text("Hello ")
-            .push(InlineCode(r"\lambda".to_string()))
+            .push(InlineMath(r"\lambda".to_string()))
             .push_text(" World!");
 
         {
