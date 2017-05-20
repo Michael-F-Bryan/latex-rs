@@ -22,7 +22,8 @@ pub enum ListKind {
 }
 
 impl ListKind {
-    pub(crate) fn environment_name(&self) -> &str {
+    /// Get the `ListKind`'s environment name.
+    pub fn environment_name(&self) -> &str {
         match *self {
             ListKind::Enumerate => "enumerate",
             ListKind::Itemize => "itemize",

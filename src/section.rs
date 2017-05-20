@@ -7,7 +7,7 @@ use document::Element;
 pub struct Section {
     /// The name of the section.
     pub name: String,
-    pub(crate) elements: Vec<Element>,
+    elements: Vec<Element>,
 }
 
 impl Section {
@@ -30,5 +30,10 @@ impl Section {
     /// Iterate over the elements in this list.
     pub fn iter(&self) -> Iter<Element> {
         self.elements.iter()
+    }
+
+    /// Is this section empty?
+    pub fn is_empty(&self) -> bool {
+        self.elements.is_empty()
     }
 }

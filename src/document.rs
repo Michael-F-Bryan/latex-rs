@@ -15,7 +15,7 @@ pub struct Document {
     /// The `Document`'s preamble.
     pub preamble: Preamble,
     /// The various elements inside this `Document`.
-    pub(crate) elements: Vec<Element>,
+    elements: Vec<Element>,
 }
 
 impl Document {
@@ -173,9 +173,11 @@ impl Display for DocumentClass {
 /// A node representing the document's preamble.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Preamble {
-    pub(crate) author: Option<String>,
-    pub(crate) title: Option<String>,
-    pub(crate) uses: Vec<String>,
+    /// The document's author.
+    pub author: Option<String>,
+    /// An optional title for the document.
+    pub title: Option<String>,
+    uses: Vec<String>,
 }
 
 impl Preamble {
@@ -195,5 +197,15 @@ impl Preamble {
     pub fn use_package(&mut self, name: &str) -> &mut Self {
         self.uses.push(name.to_string());
         self
+    }
+
+    /// Iterate over each package used in the Preamble.
+    pub fn iter(&self) -> Iter<String> {
+        self.uses.iter()
+    }
+
+    /// Are any packages being imported in the Preamble?
+    pub fn is_empty(&self) -> bool {
+        self.uses.is_empty()
     }
 }

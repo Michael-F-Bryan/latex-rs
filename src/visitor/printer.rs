@@ -46,7 +46,7 @@ impl<W> Visitor for Printer<W>
 
         writeln!(self.writer, r"\begin{{document}}")?;
 
-        for element in &doc.elements {
+        for element in doc.iter() {
             self.visit_element(element)?;
         }
 
@@ -83,11 +83,11 @@ impl<W> Visitor for Printer<W>
     }
 
     fn visit_preamble(&mut self, preamble: &Preamble) -> Result<()> {
-        for item in &preamble.uses {
+        for item in preamble.iter() {
             writeln!(self.writer, r"\usepackage{{{}}}", item)?;
         }
 
-        if !preamble.uses.is_empty() && (preamble.title.is_some() || preamble.author.is_some()) {
+        if !preamble.is_empty() && (preamble.title.is_some() || preamble.author.is_some()) {
             writeln!(self.writer)?;
         }
 
@@ -148,7 +148,7 @@ impl<W> Visitor for Printer<W>
     fn visit_section(&mut self, section: &Section) -> Result<()> {
         writeln!(self.writer, r"\section{{{}}}", section.name)?;
 
-        if !section.elements.is_empty() {
+        if !section.is_empty() {
             // Make sure there's space between the \section{...} and the next line
             writeln!(self.writer)?;
         }
@@ -164,12 +164,12 @@ impl<W> Visitor for Printer<W>
     }
 
     fn visit_equation(&mut self, equation: &Equation) -> Result<()> {
-        write!(self.writer, r"{}", equation.text)?;
+        write!(self.writer, r"{}", equation.get_text())?;
 
-        if let Some(ref label) = equation.label {
+        if let Some(ref label) = equation.get_label() {
             write!(self.writer, r" \label{{{}}}", label)?;
         }
-        if equation.not_numbered {
+        if !equation.is_numbered() {
             write!(self.writer, r" \nonumber")?;
         }
 

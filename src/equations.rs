@@ -1,4 +1,5 @@
 use std::slice::Iter;
+use std::ops::Deref;
 
 /// A single equation.
 ///
@@ -29,9 +30,9 @@ use std::slice::Iter;
 /// ```
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Equation {
-    pub(crate) text: String,
-    pub(crate) label: Option<String>,
-    pub(crate) not_numbered: bool,
+    text: String,
+    label: Option<String>,
+    not_numbered: bool,
 }
 
 impl Equation {
@@ -51,16 +52,40 @@ impl Equation {
         eq
     }
 
-    /// Set the `Equation`'s label.
-    pub fn label<S: AsRef<str>>(&mut self, text: S) -> &mut Self {
-        self.label = Some(text.as_ref().to_string());
+    //FIXME: These getters and setters are a bit of a hack because pub(restricted) isn't stable
+
+    /// Give the equation a label.
+    pub fn label(&mut self, name: &str) -> &mut Self {
+        self.label = Some(name.to_string());
         self
     }
 
-    /// Don't number this equation.
+    /// Set the equation's text.
+    pub fn text(&mut self, src: &str) -> &mut Self {
+        self.text = src.to_string();
+        self
+    }
+
+    /// Set whether the `\nonumber` command should be used to ignore numbering
+    /// for this equation.
     pub fn not_numbered(&mut self) -> &mut Self {
         self.not_numbered = true;
         self
+    }
+
+    /// Get the equation's text.
+    pub fn get_text(&self) -> &str {
+        &self.text
+    }
+
+    /// Get the equation label, if there is one.
+    pub fn get_label(&self) -> Option<&str> {
+        self.label.as_ref().map(Deref::deref)
+    }
+
+    /// Is this equation numbered?
+    pub fn is_numbered(&self) -> bool {
+        !self.not_numbered
     }
 }
 
