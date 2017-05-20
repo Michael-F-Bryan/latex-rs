@@ -58,5 +58,5 @@ it.
 
 [issue]: https://github.com/Michael-F-Bryan/latex-rs/issues/new
 [mdbook]: https://github.com/azerupi/mdBook
-[complex examples]: https://github.com/Michael-F-Bryan/latex-rs/blob/master/examples/complex.rs
+[complex example]: https://github.com/Michael-F-Bryan/latex-rs/blob/master/examples/complex.rs
 
