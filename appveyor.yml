@@ -40,9 +40,6 @@ test_script:
       cargo test --target %TARGET% &&
       cargo test --target %TARGET% --release 
 
-deploy:
-  on: false
-
 cache:
   - C:\Users\appveyor\.cargo\registry
   - target
