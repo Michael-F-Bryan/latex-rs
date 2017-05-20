@@ -96,6 +96,7 @@ mod document;
 mod section;
 mod lists;
 mod equations;
+mod visitor;
 
 pub use errors::*;
 pub use document::{Document, DocumentClass, Element, Preamble};
@@ -103,6 +104,7 @@ pub use paragraph::{Paragraph, ParagraphElement};
 pub use section::Section;
 pub use lists::{List, ListKind};
 pub use equations::{Align, Equation};
+pub use visitor::Visitor;
 
 use std::io::Write;
 
