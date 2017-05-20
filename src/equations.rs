@@ -49,6 +49,13 @@ impl Equation {
         }
     }
 
+    /// Create an equation which has a label.
+    pub fn with_label(label: &str, text: &str) -> Equation {
+        let mut eq = Equation::new(text);
+        eq.label(text);
+        eq
+    }
+
     /// Set the `Equation`'s label.
     pub fn label<S: AsRef<str>>(&mut self, text: S) -> &mut Self {
         self.label = Some(text.as_ref().to_string());

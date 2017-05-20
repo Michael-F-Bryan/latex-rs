@@ -130,7 +130,7 @@ impl From<Paragraph> for Element {
 impl<'a> From<&'a str> for Element {
     /// Create an arbitrary unescaped element from a string.
     fn from(other: &'a str) -> Self {
-        Element::UserDefined(other.to_string())
+        Element::Para(Paragraph::from(other))
     }
 }
 

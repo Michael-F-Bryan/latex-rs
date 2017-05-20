@@ -87,6 +87,7 @@
 //! [`label()`]: struct.Equation.html#method.label
 
 #![deny(missing_docs)]
+#![allow(deprecated)]
 
 #[macro_use]
 extern crate error_chain;
@@ -119,6 +120,7 @@ mod errors {
 }
 
 /// A generic trait for rendering AST nodes to some `Writer`.
+#[deprecated(since = "0.2.0", note="Please use the `Printer` type and Visitor pattern instead")]
 pub trait Renderable {
     /// Render the item.
     fn render<W>(&self, writer: &mut W) -> Result<()> where W: Write;

@@ -80,7 +80,6 @@ mod tests {
 Lorem Ipsum...
 
 Hello World!
-
 "#;
         let mut section = Section::new("First Section");
         section.push("Lorem Ipsum...").push("Hello World!");
