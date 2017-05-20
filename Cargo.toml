@@ -1,6 +1,6 @@
 [package]
 name = "latex"
-version = "0.1.3"
+version = "0.2.0"
 authors = ["Michael-F-Bryan <michaelfbryan@gmail.com>"]
 description = "An ergonomic library for programatically generating LaTeX documents and reports."
 readme = "README.md"
@@ -9,7 +9,7 @@ license = "MIT"
 homepage = "https://github.com/Michael-F-Bryan/latex-rs"
 repository = "https://github.com/Michael-F-Bryan/latex-rs"
 documentation = "https://docs.rs/latex"
-category = ["template engine", "text processing"]
+categories = ["template engine", "text processing"]
 
 [dependencies]
 error-chain = "^0.10"

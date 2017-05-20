@@ -1,9 +1,9 @@
 extern crate latex;
 
-use latex::{DocumentClass, Element, Document, Section, Renderable};
+use latex::{DocumentClass, Element, Document, Section, print};
 
 
-fn create_document() -> latex::Result<String> {
+fn create_document() -> Document {
     let mut doc = Document::new(DocumentClass::Article);
 
     // Set some metadata for the document
@@ -25,13 +25,11 @@ fn create_document() -> latex::Result<String> {
     section_2.push("More text...");
     doc.push(section_2);
 
-    let mut buffer = vec![];
-    doc.render(&mut buffer)?;
-
-    Ok(String::from_utf8(buffer)?)
+    doc
 }
 
 fn main() {
-    let rendered = create_document().unwrap();
+    let doc = create_document();
+    let rendered = print(&doc).unwrap();
     println!("{}", rendered);
 }

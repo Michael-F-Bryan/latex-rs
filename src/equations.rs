@@ -1,9 +1,5 @@
-use std::io::Write;
 use std::slice::Iter;
-
-use super::Renderable;
-use errors::*;
-
+use std::ops::Deref;
 
 /// A single equation.
 ///
@@ -49,38 +45,56 @@ impl Equation {
         }
     }
 
-    /// Set the `Equation`'s label.
-    pub fn label<S: AsRef<str>>(&mut self, text: S) -> &mut Self {
-        self.label = Some(text.as_ref().to_string());
+    /// Create an equation which has a label.
+    pub fn with_label(label: &str, text: &str) -> Equation {
+        let mut eq = Equation::new(text);
+        eq.label(label);
+        eq
+    }
+
+    //FIXME: These getters and setters are a bit of a hack because pub(restricted) isn't stable
+
+    /// Give the equation a label.
+    pub fn label(&mut self, name: &str) -> &mut Self {
+        self.label = Some(name.to_string());
         self
     }
 
-    /// Don't number this equation.
+    /// Set the equation's text.
+    pub fn text(&mut self, src: &str) -> &mut Self {
+        self.text = src.to_string();
+        self
+    }
+
+    /// Set whether the `\nonumber` command should be used to ignore numbering
+    /// for this equation.
     pub fn not_numbered(&mut self) -> &mut Self {
         self.not_numbered = true;
         self
     }
-}
 
-impl Renderable for Equation {
-    fn render<W>(&self, writer: &mut W) -> Result<()>
-        where W: Write
-    {
-        write!(writer, r"{}", self.text)?;
-        if let Some(ref label) = self.label {
-            write!(writer, r" \label{{{}}}", label)?;
-        }
-        if self.not_numbered {
-            write!(writer, r" \nonumber")?;
-        }
+    /// Get the equation's text.
+    pub fn get_text(&self) -> &str {
+        &self.text
+    }
 
-        writeln!(writer, r" \\")?;
-        Ok(())
+    /// Get the equation label, if there is one.
+    pub fn get_label(&self) -> Option<&str> {
+        self.label.as_ref().map(Deref::deref)
+    }
+
+    /// Is this equation numbered?
+    pub fn is_numbered(&self) -> bool {
+        !self.not_numbered
     }
 }
 
-
 /// A list of equations to be used in an `align` environment.
+///
+/// # Note
+///
+/// Using this environment requires you to include the `amsmath` package in
+/// your preamble.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Align {
     items: Vec<Equation>,
@@ -104,22 +118,6 @@ impl Align {
     }
 }
 
-impl Renderable for Align {
-    fn render<W>(&self, writer: &mut W) -> Result<()>
-        where W: Write
-    {
-        writeln!(writer, r"\begin{{align}}")?;
-
-        for item in &self.items {
-            item.render(writer)?;
-        }
-
-        writeln!(writer, r"\end{{align}}")?;
-        Ok(())
-    }
-}
-
-
 impl<'a> From<&'a str> for Equation {
     fn from(other: &'a str) -> Equation {
         Equation::new(other)
@@ -133,76 +131,5 @@ impl<'a> From<&'a str> for Align {
         let mut eq = Align::new();
         eq.push(other);
         eq
-    }
-}
-
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn render_empty_align() {
-        let should_be = "\\begin{align}\n\\end{align}\n";
-        let equations = Align::new();
-
-        let mut buffer = Vec::new();
-        equations.render(&mut buffer).unwrap();
-
-        assert_eq!(String::from_utf8(buffer).unwrap(), should_be);
-    }
-
-    #[test]
-    fn render_simple_equation() {
-        let should_be = "x &= y + \\sigma \\\\\n";
-        let eq = Equation::new(r"x &= y + \sigma");
-
-        let mut buffer = Vec::new();
-        eq.render(&mut buffer).unwrap();
-
-        assert_eq!(String::from_utf8(buffer).unwrap(), should_be);
-    }
-
-    #[test]
-    fn render_several_equations() {
-        let should_be = r"\begin{align}
-E &= m c^2 \label{eq:mass-energy-equivalence} \\
-y &= m x + c \\
-\end{align}
-";
-        let mut equations = Align::new();
-
-        let mut eq = Equation::new("E &= m c^2");
-        eq.label("eq:mass-energy-equivalence");
-        equations.push(eq).push("y &= m x + c");
-
-        let mut buffer = Vec::new();
-        equations.render(&mut buffer).unwrap();
-
-        assert_eq!(String::from_utf8(buffer).unwrap(), should_be);
-    }
-
-    #[test]
-    fn equation_with_label() {
-        let should_be = "E &= m c^2 \\label{eq:mass-energy-equivalence} \\\\\n";
-        let mut eq = Equation::new("E &= m c^2");
-        eq.label("eq:mass-energy-equivalence");
-
-        let mut buffer = Vec::new();
-        eq.render(&mut buffer).unwrap();
-
-        assert_eq!(String::from_utf8(buffer).unwrap(), should_be);
-    }
-
-    #[test]
-    fn equation_with_no_numbering() {
-        let should_be = "E &= m c^2 \\nonumber \\\\\n";
-        let mut eq = Equation::new("E &= m c^2");
-        eq.not_numbered();
-
-        let mut buffer = Vec::new();
-        eq.render(&mut buffer).unwrap();
-
-        assert_eq!(String::from_utf8(buffer).unwrap(), should_be);
     }
 }

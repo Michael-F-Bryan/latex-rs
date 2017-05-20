@@ -1,13 +1,11 @@
 use std::fmt::{self, Display, Formatter};
-use std::io::Write;
 use std::ops::Deref;
+use std::slice::Iter;
 
 use paragraph::Paragraph;
 use section::Section;
 use equations::Align;
-use errors::*;
 use lists::List;
-use super::Renderable;
 
 /// The root Document node.
 #[derive(Clone, Debug, Default, PartialEq)]
@@ -17,7 +15,7 @@ pub struct Document {
     /// The `Document`'s preamble.
     pub preamble: Preamble,
     /// The various elements inside this `Document`.
-    pub elements: Vec<Element>,
+    elements: Vec<Element>,
 }
 
 impl Document {
@@ -40,6 +38,11 @@ impl Document {
         self.elements.push(element.into());
         self
     }
+
+    /// Iterate over the Elements in this document.
+    pub fn iter(&self) -> Iter<Element> {
+        self.elements.iter()
+    }
 }
 
 impl Deref for Document {
@@ -48,25 +51,6 @@ impl Deref for Document {
     /// A shortcut to let you iterate over the elements in the `Document`.
     fn deref(&self) -> &Self::Target {
         &self.elements
-    }
-}
-
-impl Renderable for Document {
-    fn render<W>(&self, writer: &mut W) -> Result<()>
-        where W: Write
-    {
-        writeln!(writer, r"\documentclass{{{}}}", self.class)?;
-
-        self.preamble.render(writer)?;
-
-        writeln!(writer, r"\begin{{document}}")?;
-
-        for element in &self.elements {
-            element.render(writer)?;
-        }
-
-        writeln!(writer, r"\end{{document}}")?;
-        Ok(())
     }
 }
 
@@ -124,7 +108,7 @@ impl From<Paragraph> for Element {
 impl<'a> From<&'a str> for Element {
     /// Create an arbitrary unescaped element from a string.
     fn from(other: &'a str) -> Self {
-        Element::UserDefined(other.to_string())
+        Element::Para(Paragraph::from(other))
     }
 }
 
@@ -160,35 +144,6 @@ impl<S, I> From<(S, I)> for Element
     }
 }
 
-impl Renderable for Element {
-    fn render<W>(&self, writer: &mut W) -> Result<()>
-        where W: Write
-    {
-        match *self {
-            Element::Para(ref p) => p.render(writer)?,
-            Element::Section(ref s) => s.render(writer)?,
-            Element::TableOfContents => writeln!(writer, r"\tableofcontents")?,
-            Element::TitlePage => writeln!(writer, r"\maketitle")?,
-            Element::ClearPage => writeln!(writer, r"\clearpage")?,
-            Element::UserDefined(ref s) => writeln!(writer, "{}", s)?,
-            Element::Align(ref equations) => equations.render(writer)?,
-
-            Element::Environment(ref name, ref lines) => {
-                writeln!(writer, r"\begin{{{}}}", name)?;
-                for line in lines {
-                    writeln!(writer, "{}", line)?;
-                }
-                writeln!(writer, r"\end{{{}}}", name)?;
-            }
-            Element::List(ref list) => list.render(writer)?,
-
-            Element::_Other => unreachable!(),
-        }
-
-        Ok(())
-    }
-}
-
 /// The kind of Document being generated.
 #[derive(Clone, Debug, PartialEq)]
 #[allow(missing_docs)]
@@ -218,8 +173,10 @@ impl Display for DocumentClass {
 /// A node representing the document's preamble.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Preamble {
-    author: Option<String>,
-    title: Option<String>,
+    /// The document's author.
+    pub author: Option<String>,
+    /// An optional title for the document.
+    pub title: Option<String>,
     uses: Vec<String>,
 }
 
@@ -241,78 +198,14 @@ impl Preamble {
         self.uses.push(name.to_string());
         self
     }
-}
 
-impl Renderable for Preamble {
-    fn render<W: Write>(&self, writer: &mut W) -> Result<()> {
-        for item in &self.uses {
-            writeln!(writer, r"\usepackage{{{}}}", item)?;
-        }
-
-        if !self.uses.is_empty() && (self.title.is_some() || self.author.is_some()) {
-            writeln!(writer)?;
-        }
-
-        if let Some(ref title) = self.title {
-            writeln!(writer, r"\title{{{}}}", title)?;
-        }
-        if let Some(ref author) = self.author {
-            writeln!(writer, r"\author{{{}}}", author)?;
-        }
-
-        Ok(())
-    }
-}
-
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn render_empty_document() {
-        let should_be = r#"\documentclass{article}
-\begin{document}
-\end{document}
-"#;
-
-        let doc = Document::new(DocumentClass::Article);
-        let mut rendered = vec![];
-        doc.render(&mut rendered).unwrap();
-
-        assert_eq!(String::from_utf8(rendered).unwrap(), should_be);
+    /// Iterate over each package used in the Preamble.
+    pub fn iter(&self) -> Iter<String> {
+        self.uses.iter()
     }
 
-    #[test]
-    fn preamble_with_author_and_title() {
-        let should_be = r#"\title{Sample Document}
-\author{Michael-F-Bryan}
-"#;
-        let mut preamble = Preamble::default();
-        preamble.title("Sample Document").author("Michael-F-Bryan");
-
-        let mut rendered = vec![];
-        preamble.render(&mut rendered).unwrap();
-
-        assert_eq!(String::from_utf8(rendered).unwrap(), should_be);
-    }
-
-    #[test]
-    fn preamble_with_title_and_package_imports() {
-        let should_be = r#"\usepackage{amsmath}
-\usepackage{graphics}
-
-\title{Sample Document}
-"#;
-        let mut preamble = Preamble::default();
-        preamble
-            .title("Sample Document")
-            .use_package("amsmath")
-            .use_package("graphics");
-
-        let mut rendered = vec![];
-        preamble.render(&mut rendered).unwrap();
-
-        assert_eq!(String::from_utf8(rendered).unwrap(), should_be);
+    /// Are any packages being imported in the Preamble?
+    pub fn is_empty(&self) -> bool {
+        self.uses.is_empty()
     }
 }

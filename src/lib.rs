@@ -15,11 +15,13 @@
 //!
 //! # Examples
 //!
+//! ## Creating A Document
+//!
 //! Here's how to create a reasonably complex document containing a title page,
 //! a table of contents, some equations, and two sections.
 //!
 //! ```rust
-//! use latex::{DocumentClass, Element, Document, Section, Renderable, Align};
+//! use latex::{DocumentClass, Element, Document, Section, Align};
 //!
 //! # fn run() -> latex::Result<()> {
 //! let mut doc = Document::new(DocumentClass::Article);
@@ -45,10 +47,7 @@
 //!
 //! doc.push(section_2);
 //!
-//! let mut buffer = Vec::new();
-//! doc.render(&mut buffer)?;
-//!
-//! let rendered = String::from_utf8(buffer)?;
+//! let rendered = latex::print(&doc)?;
 //! # Ok(())
 //! # }
 //! # fn main() {
@@ -82,9 +81,26 @@
 //! # }
 //! ```
 //!
+//! ## Traversing A Document
+//!
+//! Once you have created a document, you have the ability to walk it and do
+//! any transformation you want using the [`Visitor`] trait. All methods on the
+//! trait come with default `impls` which will recursively visit the various
+//! nodes in your `Document`. This means if you only care about the `Paragraph`
+//! nodes you can implement just the [`visit_paragraph()`] method and then
+//! inspect all `Paragraph` nodes in the document. Everything else should *Just
+//! Work*.
+//!
+//! If you want to see how you can write your own `Visitor`, check out the
+//! source code for the [`Printer`] struct.
+//!
+//!
 //! [latexmk]: http://mg.readthedocs.io/latexmk.html
 //! [`Align`]: struct.Align.html
 //! [`label()`]: struct.Equation.html#method.label
+//! [`Visitor`]: visitor/trait.Visitor.html
+//! [`visit_paragraph()`]: visitor/trait.Visitor.html#method.visit_paragraph
+//! [`Printer`]: visitor/struct.Printer.html
 
 #![deny(missing_docs)]
 
@@ -96,15 +112,15 @@ mod document;
 mod section;
 mod lists;
 mod equations;
+pub mod visitor;
 
 pub use errors::*;
 pub use document::{Document, DocumentClass, Element, Preamble};
 pub use paragraph::{Paragraph, ParagraphElement};
 pub use section::Section;
-pub use lists::{List, ListKind};
+pub use lists::{List, ListKind, Item};
 pub use equations::{Align, Equation};
-
-use std::io::Write;
+pub use visitor::{print, Visitor};
 
 mod errors {
     error_chain!{
@@ -114,10 +130,4 @@ mod errors {
             UtfError(::std::string::FromUtf8Error) #[doc = "A UTF8 conversion error"];
         }
     }
-}
-
-/// A generic trait for rendering AST nodes to some `Writer`.
-pub trait Renderable {
-    /// Render the item.
-    fn render<W>(&self, writer: &mut W) -> Result<()> where W: Write;
 }
