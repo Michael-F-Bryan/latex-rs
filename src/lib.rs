@@ -19,7 +19,7 @@
 //! a table of contents, some equations, and two sections.
 //!
 //! ```rust
-//! use latex::{DocumentClass, Element, Document, Section, Renderable, Align};
+//! use latex::{DocumentClass, Element, Document, Section, Align};
 //!
 //! # fn run() -> latex::Result<()> {
 //! let mut doc = Document::new(DocumentClass::Article);
@@ -45,10 +45,7 @@
 //!
 //! doc.push(section_2);
 //!
-//! let mut buffer = Vec::new();
-//! doc.render(&mut buffer)?;
-//!
-//! let rendered = String::from_utf8(buffer)?;
+//! let rendered = latex::print(&doc)?;
 //! # Ok(())
 //! # }
 //! # fn main() {
@@ -87,7 +84,6 @@
 //! [`label()`]: struct.Equation.html#method.label
 
 #![deny(missing_docs)]
-#![allow(deprecated)]
 
 #[macro_use]
 extern crate error_chain;
@@ -107,8 +103,6 @@ pub use lists::{List, ListKind, Item};
 pub use equations::{Align, Equation};
 pub use visitor::{print, Visitor};
 
-use std::io::Write;
-
 mod errors {
     error_chain!{
         foreign_links{
@@ -117,11 +111,4 @@ mod errors {
             UtfError(::std::string::FromUtf8Error) #[doc = "A UTF8 conversion error"];
         }
     }
-}
-
-/// A generic trait for rendering AST nodes to some `Writer`.
-#[deprecated(since = "0.2.0", note="Please use the `Printer` type and Visitor pattern instead")]
-pub trait Renderable {
-    /// Render the item.
-    fn render<W>(&self, writer: &mut W) -> Result<()> where W: Write;
 }

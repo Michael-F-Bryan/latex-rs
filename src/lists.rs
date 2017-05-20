@@ -1,10 +1,5 @@
-use std::io::Write;
 use std::slice::Iter;
 use std::ops::Deref;
-
-use super::Renderable;
-use errors::*;
-
 
 /// Wrapper around a single list item.
 #[derive(Clone, Debug, PartialEq)]
@@ -87,23 +82,6 @@ impl List {
     }
 }
 
-impl Renderable for List {
-    fn render<W>(&self, writer: &mut W) -> Result<()>
-        where W: Write
-    {
-        let env = self.kind.environment_name();
-
-        writeln!(writer, r"\begin{{{}}}", env)?;
-
-        for item in &self.items {
-            writeln!(writer, r"\item {}", item.0)?;
-        }
-
-        writeln!(writer, r"\end{{{}}}", env)?;
-
-        Ok(())
-    }
-}
 
 #[cfg(test)]
 mod tests {

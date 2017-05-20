@@ -1,8 +1,4 @@
-use std::io::Write;
 use std::slice::Iter;
-
-use errors::*;
-use super::Renderable;
 
 /// A single paragraph.
 #[derive(Clone, Debug, Default, PartialEq)]
@@ -34,16 +30,6 @@ impl Paragraph {
     }
 }
 
-impl Renderable for Paragraph {
-    fn render<W>(&self, writer: &mut W) -> Result<()>
-        where W: Write
-    {
-        for element in &self.elements {
-            element.render(writer)?;
-        }
-        Ok(())
-    }
-}
 
 impl<'a> From<&'a str> for Paragraph {
     fn from(other: &'a str) -> Paragraph {
@@ -73,28 +59,5 @@ pub enum ParagraphElement {
 impl<'a> From<&'a str> for ParagraphElement {
     fn from(other: &'a str) -> Self {
         ParagraphElement::Plain(other.to_string())
-    }
-}
-
-impl Renderable for ParagraphElement {
-    fn render<W>(&self, writer: &mut W) -> Result<()>
-        where W: Write
-    {
-        match *self {
-            ParagraphElement::Plain(ref s) => write!(writer, "{}", s)?,
-            ParagraphElement::InlineCode(ref s) => write!(writer, "${}$", s)?,
-            ParagraphElement::Bold(ref e) => {
-                write!(writer, r"\textbf{{")?;
-                e.render(writer)?;
-                write!(writer, "}}")?;
-            }
-            ParagraphElement::Italic(ref e) => {
-                write!(writer, r"\textit{{")?;
-                e.render(writer)?;
-                write!(writer, "}}")?;
-            }
-        }
-
-        Ok(())
     }
 }

@@ -1,14 +1,11 @@
 use std::fmt::{self, Display, Formatter};
-use std::io::Write;
 use std::ops::Deref;
 use std::slice::Iter;
 
 use paragraph::Paragraph;
 use section::Section;
 use equations::Align;
-use errors::*;
 use lists::List;
-use super::Renderable;
 
 /// The root Document node.
 #[derive(Clone, Debug, Default, PartialEq)]
@@ -54,25 +51,6 @@ impl Deref for Document {
     /// A shortcut to let you iterate over the elements in the `Document`.
     fn deref(&self) -> &Self::Target {
         &self.elements
-    }
-}
-
-impl Renderable for Document {
-    fn render<W>(&self, writer: &mut W) -> Result<()>
-        where W: Write
-    {
-        writeln!(writer, r"\documentclass{{{}}}", self.class)?;
-
-        self.preamble.render(writer)?;
-
-        writeln!(writer, r"\begin{{document}}")?;
-
-        for element in &self.elements {
-            element.render(writer)?;
-        }
-
-        writeln!(writer, r"\end{{document}}")?;
-        Ok(())
     }
 }
 
@@ -166,35 +144,6 @@ impl<S, I> From<(S, I)> for Element
     }
 }
 
-impl Renderable for Element {
-    fn render<W>(&self, writer: &mut W) -> Result<()>
-        where W: Write
-    {
-        match *self {
-            Element::Para(ref p) => p.render(writer)?,
-            Element::Section(ref s) => s.render(writer)?,
-            Element::TableOfContents => writeln!(writer, r"\tableofcontents")?,
-            Element::TitlePage => writeln!(writer, r"\maketitle")?,
-            Element::ClearPage => writeln!(writer, r"\clearpage")?,
-            Element::UserDefined(ref s) => writeln!(writer, "{}", s)?,
-            Element::Align(ref equations) => equations.render(writer)?,
-
-            Element::Environment(ref name, ref lines) => {
-                writeln!(writer, r"\begin{{{}}}", name)?;
-                for line in lines {
-                    writeln!(writer, "{}", line)?;
-                }
-                writeln!(writer, r"\end{{{}}}", name)?;
-            }
-            Element::List(ref list) => list.render(writer)?,
-
-            Element::_Other => unreachable!(),
-        }
-
-        Ok(())
-    }
-}
-
 /// The kind of Document being generated.
 #[derive(Clone, Debug, PartialEq)]
 #[allow(missing_docs)]
@@ -246,26 +195,5 @@ impl Preamble {
     pub fn use_package(&mut self, name: &str) -> &mut Self {
         self.uses.push(name.to_string());
         self
-    }
-}
-
-impl Renderable for Preamble {
-    fn render<W: Write>(&self, writer: &mut W) -> Result<()> {
-        for item in &self.uses {
-            writeln!(writer, r"\usepackage{{{}}}", item)?;
-        }
-
-        if !self.uses.is_empty() && (self.title.is_some() || self.author.is_some()) {
-            writeln!(writer)?;
-        }
-
-        if let Some(ref title) = self.title {
-            writeln!(writer, r"\title{{{}}}", title)?;
-        }
-        if let Some(ref author) = self.author {
-            writeln!(writer, r"\author{{{}}}", author)?;
-        }
-
-        Ok(())
     }
 }

@@ -4,6 +4,7 @@ use document::{Document, Preamble, Element};
 use paragraph::{Paragraph, ParagraphElement};
 use lists::{Item, List};
 use section::Section;
+use equations::{Align, Equation};
 use super::Visitor;
 use errors::*;
 
@@ -157,13 +158,39 @@ impl<W> Visitor for Printer<W>
 
         Ok(())
     }
+
+    fn visit_equation(&mut self, equation: &Equation) -> Result<()> {
+        write!(self.writer, r"{}", equation.text)?;
+
+        if let Some(ref label) = equation.label {
+            write!(self.writer, r" \label{{{}}}", label)?;
+        }
+        if equation.not_numbered {
+            write!(self.writer, r" \nonumber")?;
+        }
+
+        writeln!(self.writer, r" \\")?;
+        Ok(())
+    }
+
+    fn visit_align(&mut self, align: &Align) -> Result<()> {
+        writeln!(self.writer, r"\begin{{align}}")?;
+
+        for item in align.iter() {
+            self.visit_equation(item)?;
+        }
+
+        writeln!(self.writer, r"\end{{align}}")?;
+
+        Ok(())
+    }
 }
 
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use {Section, ListKind, Paragraph, DocumentClass};
+    use {Section, ListKind, Paragraph, DocumentClass, Equation, Align};
     use self::ParagraphElement::*;
 
     #[test]
@@ -380,6 +407,91 @@ Hello World!
         {
             let mut printer = Printer::new(&mut buffer);
             printer.visit_section(&section).unwrap();
+        }
+
+        assert_eq!(String::from_utf8(buffer).unwrap(), should_be);
+    }
+
+    #[test]
+    fn render_empty_align() {
+        let should_be = "\\begin{align}\n\\end{align}\n";
+        let mut buffer = Vec::new();
+
+        let equations = Align::new();
+
+        {
+            let mut printer = Printer::new(&mut buffer);
+            printer.visit_align(&equations).unwrap();
+        }
+
+        assert_eq!(String::from_utf8(buffer).unwrap(), should_be);
+    }
+
+    #[test]
+    fn render_simple_equation() {
+        let should_be = "x &= y + \\sigma \\\\\n";
+        let mut buffer = Vec::new();
+        let eq = Equation::new(r"x &= y + \sigma");
+
+
+        {
+            let mut printer = Printer::new(&mut buffer);
+            printer.visit_equation(&eq).unwrap();
+        }
+
+        assert_eq!(String::from_utf8(buffer).unwrap(), should_be);
+    }
+
+    #[test]
+    fn render_several_equations() {
+        let should_be = r"\begin{align}
+E &= m c^2 \label{eq:mass-energy-equivalence} \\
+y &= m x + c \\
+\end{align}
+";
+        let mut buffer = Vec::new();
+
+        let mut equations = Align::new();
+
+        equations
+            .push(Equation::with_label("eq:mass-energy-equivalence", "E &= m c^2"))
+            .push("y &= m x + c");
+
+        {
+            let mut printer = Printer::new(&mut buffer);
+            printer.visit_align(&equations).unwrap();
+        }
+
+        assert_eq!(String::from_utf8(buffer).unwrap(), should_be);
+    }
+
+    #[test]
+    fn equation_with_label() {
+        let should_be = "E &= m c^2 \\label{eq:mass-energy-equivalence} \\\\\n";
+        let mut buffer = Vec::new();
+
+        let mut eq = Equation::new("E &= m c^2");
+        eq.label("eq:mass-energy-equivalence");
+
+        {
+            let mut printer = Printer::new(&mut buffer);
+            printer.visit_equation(&eq).unwrap();
+        }
+
+        assert_eq!(String::from_utf8(buffer).unwrap(), should_be);
+    }
+
+    #[test]
+    fn equation_with_no_numbering() {
+        let should_be = "E &= m c^2 \\nonumber \\\\\n";
+        let mut buffer = Vec::new();
+
+        let mut eq = Equation::new("E &= m c^2");
+        eq.not_numbered();
+
+        {
+            let mut printer = Printer::new(&mut buffer);
+            printer.visit_equation(&eq).unwrap();
         }
 
         assert_eq!(String::from_utf8(buffer).unwrap(), should_be);

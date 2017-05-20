@@ -1,9 +1,6 @@
-use std::io::Write;
 use std::slice::Iter;
 
 use document::Element;
-use super::Renderable;
-use errors::*;
 
 /// A document Section.
 #[derive(Clone, Debug, Default, PartialEq)]
@@ -33,27 +30,5 @@ impl Section {
     /// Iterate over the elements in this list.
     pub fn iter(&self) -> Iter<Element> {
         self.elements.iter()
-    }
-}
-
-impl Renderable for Section {
-    fn render<W>(&self, writer: &mut W) -> Result<()>
-        where W: Write
-    {
-        writeln!(writer, r"\section{{{}}}", self.name)?;
-
-        if !self.elements.is_empty() {
-            // Make sure there's space between the \section{...} and the next line
-            writeln!(writer)?;
-        }
-
-        for element in &self.elements {
-            element.render(writer)?;
-            // LaTeX needs an empty line between paragraphs/elements otherwise
-            // it'll automatically concatenate them together
-            write!(writer, "\n")?;
-        }
-
-        Ok(())
     }
 }
