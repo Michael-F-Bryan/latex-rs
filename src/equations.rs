@@ -65,6 +65,11 @@ impl Equation {
 }
 
 /// A list of equations to be used in an `align` environment.
+///
+/// # Note
+///
+/// Using this environment requires you to include the `amsmath` package in
+/// your preamble.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Align {
     items: Vec<Equation>,

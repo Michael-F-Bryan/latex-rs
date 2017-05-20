@@ -8,8 +8,12 @@ fn create_document() -> Document {
     let mut doc = Document::new(DocumentClass::Article);
 
     // Set the document's metadata
-    doc.preamble.title("Hello World");
-    doc.preamble.author("Michael-F-Bryan");
+
+    doc.preamble
+        .title("Hello World")
+        .author("Michael-F-Bryan")
+        .use_package("amsmath")
+        .use_package("parskip");
 
     doc.push(Element::TitlePage)
         .push(Element::ClearPage)
