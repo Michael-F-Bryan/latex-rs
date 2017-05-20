@@ -4,6 +4,9 @@
 [![Crates.io](https://img.shields.io/crates/l/latex.svg)](https://crates.io/crates/latex)
 [![Docs.rs](https://docs.rs/latex/badge.svg)](https://docs.rs/latex/)
 [![latex-rs on Crates.io](https://img.shields.io/crates/v/latex.svg)](https://crates.io/crates/latex)
+[![Build
+status](https://ci.appveyor.com/api/projects/status/eca0h1nrk6nq3xwo?svg=true)](https://ci.appveyor.com/project/Michael-F-Bryan/latex-rs)
+
 
 An ergonomic library for programatically generating LaTeX documents and reports.
 
