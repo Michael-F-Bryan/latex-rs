@@ -93,23 +93,13 @@ pub trait Visitor {
         Ok(())
     }
 
-    fn visit_list_item(&self, item: &Item) -> Result<()> {
+    fn visit_list_item(&mut self, item: &Item) -> Result<()> {
         Ok(())
     }
 
-    fn visit_custom_environment<'a, I>(&self, name: &str, lines: I) -> Result<()>
+    fn visit_custom_environment<'a, I>(&mut self, name: &str, lines: I) -> Result<()>
         where I: Iterator<Item = &'a str>
     {
         Ok(())
     }
 }
-
-// Para(Paragraph),
-// Section(Section),
-// TableOfContents,
-// TitlePage,
-// ClearPage,
-// Align(Align),
-// Environment(String, Vec<String>),
-// UserDefined(String),
-// List(List),

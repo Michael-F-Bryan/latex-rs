@@ -102,9 +102,9 @@ pub use errors::*;
 pub use document::{Document, DocumentClass, Element, Preamble};
 pub use paragraph::{Paragraph, ParagraphElement};
 pub use section::Section;
-pub use lists::{List, ListKind};
+pub use lists::{List, ListKind, Item};
 pub use equations::{Align, Equation};
-pub use visitor::print;
+pub use visitor::{print, Visitor};
 
 use std::io::Write;
 

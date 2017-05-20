@@ -6,8 +6,9 @@ use super::Renderable;
 use errors::*;
 
 
+/// Wrapper around a single list item.
 #[derive(Clone, Debug, PartialEq)]
-pub struct Item(String);
+pub struct Item(pub String);
 
 impl Deref for Item {
     type Target = str;
@@ -26,7 +27,7 @@ pub enum ListKind {
 }
 
 impl ListKind {
-    fn environment_name(&self) -> &str {
+    pub(crate) fn environment_name(&self) -> &str {
         match *self {
             ListKind::Enumerate => "enumerate",
             ListKind::Itemize => "itemize",
@@ -104,32 +105,9 @@ impl Renderable for List {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn render_enumerated_list() {
-        let should_be = "\\begin{enumerate}\n\\end{enumerate}\n";
-        let list = List::new(ListKind::Enumerate);
-
-        let mut buffer = Vec::new();
-        list.render(&mut buffer).unwrap();
-
-        assert_eq!(String::from_utf8(buffer).unwrap(), should_be);
-    }
-
-    #[test]
-    fn render_empty_itemize_list() {
-        let should_be = "\\begin{itemize}\n\\end{itemize}\n";
-        let list = List::new(ListKind::Itemize);
-
-        let mut buffer = Vec::new();
-        list.render(&mut buffer).unwrap();
-
-        assert_eq!(String::from_utf8(buffer).unwrap(), should_be);
-    }
 
     #[test]
     fn push_item_to_list() {
@@ -138,23 +116,5 @@ mod tests {
         assert_eq!(list.items.len(), 0);
         list.push("Hello World");
         assert_eq!(list.items.len(), 1);
-    }
-
-    #[test]
-    fn render_list_with_items() {
-        let should_be = r"\begin{itemize}
-\item This
-\item is
-\item a
-\item list!
-\end{itemize}
-";
-        let mut list = List::new(ListKind::Itemize);
-        list.push("This").push("is").push("a").push("list!");
-
-        let mut buffer = Vec::new();
-        list.render(&mut buffer).unwrap();
-
-        assert_eq!(String::from_utf8(buffer).unwrap(), should_be);
     }
 }

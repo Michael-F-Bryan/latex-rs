@@ -2,6 +2,7 @@ use std::io::Write;
 
 use document::{Document, Preamble, Element, DocumentClass};
 use paragraph::{Paragraph, ParagraphElement};
+use lists::{Item, ListKind, List};
 use super::Visitor;
 use errors::*;
 
@@ -82,6 +83,25 @@ impl<W> Visitor for Printer<W>
             writeln!(self.writer, r"\author{{{}}}", author)?;
         }
 
+        Ok(())
+    }
+
+    fn visit_list(&mut self, list: &List) -> Result<()> {
+        let env = list.kind.environment_name();
+
+        writeln!(self.writer, r"\begin{{{}}}", env)?;
+
+        for item in list.iter() {
+            self.visit_list_item(item)?;
+        }
+
+        writeln!(self.writer, r"\end{{{}}}", env)?;
+
+        Ok(())
+    }
+
+    fn visit_list_item(&mut self, item: &Item) -> Result<()> {
+        writeln!(self.writer, r"\item {}", item.0)?;
         Ok(())
     }
 
@@ -241,6 +261,59 @@ mod tests {
         {
             let mut printer = Printer::new(&mut buffer);
             printer.visit_document(&doc).unwrap();
+        }
+
+        assert_eq!(String::from_utf8(buffer).unwrap(), should_be);
+    }
+
+
+    #[test]
+    fn render_enumerated_list() {
+        let should_be = "\\begin{enumerate}\n\\end{enumerate}\n";
+        let mut buffer = Vec::new();
+
+        let list = List::new(ListKind::Enumerate);
+
+        {
+            let mut printer = Printer::new(&mut buffer);
+            printer.visit_list(&list).unwrap();
+        }
+
+        assert_eq!(String::from_utf8(buffer).unwrap(), should_be);
+    }
+
+    #[test]
+    fn render_empty_itemize_list() {
+        let should_be = "\\begin{itemize}\n\\end{itemize}\n";
+        let mut buffer = Vec::new();
+
+        let list = List::new(ListKind::Itemize);
+
+        {
+            let mut printer = Printer::new(&mut buffer);
+            printer.visit_list(&list).unwrap();
+        }
+
+        assert_eq!(String::from_utf8(buffer).unwrap(), should_be);
+    }
+
+    #[test]
+    fn render_list_with_items() {
+        let should_be = r"\begin{itemize}
+\item This
+\item is
+\item a
+\item list!
+\end{itemize}
+";
+        let mut buffer = Vec::new();
+
+        let mut list = List::new(ListKind::Itemize);
+        list.push("This").push("is").push("a").push("list!");
+
+        {
+            let mut printer = Printer::new(&mut buffer);
+            printer.visit_list(&list).unwrap();
         }
 
         assert_eq!(String::from_utf8(buffer).unwrap(), should_be);
