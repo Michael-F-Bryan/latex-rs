@@ -26,11 +26,32 @@ doc.push("Hello World");
 ```
 
 
+## Features
+
+The crate is still incomplete, but the following features are available when
+generating your `LaTeX` documents:
+
+- [x] Preamble
+- [x] Sections
+- [x] Paragraphs
+- [x] Align environment and Equations
+- [x] Lists (both numbered and not)
+- [x] Table of contents, title page, and the `\clearpage` command
+- [ ] Figures
+- [ ] Tables
+- [ ] Appendices
+- [ ] Included PDF files
+- [ ] `\input{...}` and `\include{...}`
+- [ ] References and Bibliography
+- [ ] labels, plus `\ref{...}` for referencing them
+
+
 ## Contributing
 
 This crate is still very young so pull requests and issues are welcome! If
 you there's something you want then create an [issue] and I'll try to implement
 it.
+
 
 [issue]: https://github.com/Michael-F-Bryan/latex-rs/issues/new
 [mdbook]: https://github.com/azerupi/mdBook
