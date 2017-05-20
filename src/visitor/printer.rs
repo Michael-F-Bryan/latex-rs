@@ -9,6 +9,7 @@ use super::Visitor;
 use errors::*;
 
 
+/// Print a document to a string.
 pub fn print(doc: &Document) -> Result<String> {
     let mut buffer = Vec::new();
     {
@@ -20,6 +21,8 @@ pub fn print(doc: &Document) -> Result<String> {
     Ok(rendered)
 }
 
+/// The type which uses the `Visitor` pattern to visit each node in a document
+/// and write its `tex` representation to a `Writer`.
 pub struct Printer<W> {
     writer: W,
 }
@@ -27,6 +30,7 @@ pub struct Printer<W> {
 impl<W> Printer<W>
     where W: Write
 {
+    /// Create a new `Printer` which will write to the provided `Writer`.
     pub fn new(writer: W) -> Printer<W> {
         Printer { writer: writer }
     }
