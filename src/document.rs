@@ -70,7 +70,8 @@ impl Renderable for Document {
     }
 }
 
-/// The major elements in a `Document`.
+/// The major elements in a `Document`, representing each type of possible
+/// node.
 ///
 /// For convenience, any variant which wraps a struct will implement `From` for
 /// that struct. Meaning you can create an `Element::Para` node just by using
