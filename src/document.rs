@@ -218,9 +218,9 @@ impl Display for DocumentClass {
 /// A node representing the document's preamble.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Preamble {
-    author: Option<String>,
-    title: Option<String>,
-    uses: Vec<String>,
+    pub(crate) author: Option<String>,
+    pub(crate) title: Option<String>,
+    pub(crate) uses: Vec<String>,
 }
 
 impl Preamble {
@@ -279,39 +279,6 @@ mod tests {
         let doc = Document::new(DocumentClass::Article);
         let mut rendered = vec![];
         doc.render(&mut rendered).unwrap();
-
-        assert_eq!(String::from_utf8(rendered).unwrap(), should_be);
-    }
-
-    #[test]
-    fn preamble_with_author_and_title() {
-        let should_be = r#"\title{Sample Document}
-\author{Michael-F-Bryan}
-"#;
-        let mut preamble = Preamble::default();
-        preamble.title("Sample Document").author("Michael-F-Bryan");
-
-        let mut rendered = vec![];
-        preamble.render(&mut rendered).unwrap();
-
-        assert_eq!(String::from_utf8(rendered).unwrap(), should_be);
-    }
-
-    #[test]
-    fn preamble_with_title_and_package_imports() {
-        let should_be = r#"\usepackage{amsmath}
-\usepackage{graphics}
-
-\title{Sample Document}
-"#;
-        let mut preamble = Preamble::default();
-        preamble
-            .title("Sample Document")
-            .use_package("amsmath")
-            .use_package("graphics");
-
-        let mut rendered = vec![];
-        preamble.render(&mut rendered).unwrap();
 
         assert_eq!(String::from_utf8(rendered).unwrap(), should_be);
     }

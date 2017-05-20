@@ -1,16 +1,16 @@
-#![allow(missing_docs)]
+//! A trait which lets you walk your document's AST.
 
-use std::io::Write;
+#![allow(missing_docs)]
 
 use document::{Document, Preamble, Element};
 use paragraph::{Paragraph, ParagraphElement};
 use errors::*;
-use super::Renderable;
 
 mod printer;
 
 pub use self::printer::{print, Printer};
 
+#[allow(unused_variables)]
 pub trait Visitor {
     fn visit_document(&mut self, doc: &Document) -> Result<()> {
         self.visit_preamble(&doc.preamble)?;

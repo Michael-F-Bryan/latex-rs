@@ -3,7 +3,6 @@ use std::io::Write;
 use document::{Document, Preamble, Element};
 use paragraph::{Paragraph, ParagraphElement};
 use super::Visitor;
-use super::super::Renderable;
 use errors::*;
 
 
@@ -47,6 +46,25 @@ impl<W> Visitor for Printer<W>
                 self.visit_paragraph_element(e)?;
                 write!(self.writer, "}}")?;
             }
+        }
+
+        Ok(())
+    }
+
+    fn visit_preamble(&mut self, preamble: &Preamble) -> Result<()> {
+        for item in &preamble.uses {
+            writeln!(self.writer, r"\usepackage{{{}}}", item)?;
+        }
+
+        if !preamble.uses.is_empty() && (preamble.title.is_some() || preamble.author.is_some()) {
+            writeln!(self.writer)?;
+        }
+
+        if let Some(ref title) = preamble.title {
+            writeln!(self.writer, r"\title{{{}}}", title)?;
+        }
+        if let Some(ref author) = preamble.author {
+            writeln!(self.writer, r"\author{{{}}}", author)?;
         }
 
         Ok(())
@@ -127,4 +145,46 @@ mod tests {
 
         assert_eq!(String::from_utf8(buffer).unwrap(), should_be);
     }
+
+    #[test]
+    fn preamble_with_author_and_title() {
+        let should_be = r#"\title{Sample Document}
+\author{Michael-F-Bryan}
+"#;
+        let mut buffer = Vec::new();
+
+        let mut preamble = Preamble::default();
+        preamble.title("Sample Document").author("Michael-F-Bryan");
+
+        {
+            let mut printer = Printer::new(&mut buffer);
+            printer.visit_preamble(&preamble).unwrap();
+        }
+
+        assert_eq!(String::from_utf8(buffer).unwrap(), should_be);
+    }
+
+    #[test]
+    fn preamble_with_title_and_package_imports() {
+        let should_be = r#"\usepackage{amsmath}
+\usepackage{graphics}
+
+\title{Sample Document}
+"#;
+        let mut buffer = Vec::new();
+
+        let mut preamble = Preamble::default();
+        preamble
+            .title("Sample Document")
+            .use_package("amsmath")
+            .use_package("graphics");
+
+        {
+            let mut printer = Printer::new(&mut buffer);
+            printer.visit_preamble(&preamble).unwrap();
+        }
+
+        assert_eq!(String::from_utf8(buffer).unwrap(), should_be);
+    }
+
 }
