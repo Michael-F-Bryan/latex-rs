@@ -1,6 +1,6 @@
 use std::io::Write;
 
-use document::{Document, Preamble, Element};
+use document::{Document, Preamble, Element, DocumentClass};
 use paragraph::{Paragraph, ParagraphElement};
 use super::Visitor;
 use errors::*;
@@ -32,6 +32,21 @@ impl<W> Printer<W>
 impl<W> Visitor for Printer<W>
     where W: Write
 {
+    fn visit_document(&mut self, doc: &Document) -> Result<()> {
+        writeln!(self.writer, r"\documentclass{{{}}}", doc.class)?;
+
+        self.visit_preamble(&doc.preamble)?;
+
+        writeln!(self.writer, r"\begin{{document}}")?;
+
+        for element in &doc.elements {
+            self.visit_element(element)?;
+        }
+
+        writeln!(self.writer, r"\end{{document}}")?;
+        Ok(())
+    }
+
     fn visit_paragraph_element(&mut self, element: &ParagraphElement) -> Result<()> {
         match *element {
             ParagraphElement::Plain(ref s) => write!(self.writer, "{}", s)?,
@@ -187,4 +202,22 @@ mod tests {
         assert_eq!(String::from_utf8(buffer).unwrap(), should_be);
     }
 
+
+    #[test]
+    fn render_empty_document() {
+        let should_be = r#"\documentclass{article}
+\begin{document}
+\end{document}
+"#;
+        let mut buffer = Vec::new();
+
+        let doc = Document::new(DocumentClass::Article);
+
+        {
+            let mut printer = Printer::new(&mut buffer);
+            printer.visit_document(&doc).unwrap();
+        }
+
+        assert_eq!(String::from_utf8(buffer).unwrap(), should_be);
+    }
 }

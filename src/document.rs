@@ -1,6 +1,7 @@
 use std::fmt::{self, Display, Formatter};
 use std::io::Write;
 use std::ops::Deref;
+use std::slice::Iter;
 
 use paragraph::Paragraph;
 use section::Section;
@@ -17,7 +18,7 @@ pub struct Document {
     /// The `Document`'s preamble.
     pub preamble: Preamble,
     /// The various elements inside this `Document`.
-    pub elements: Vec<Element>,
+    pub(crate) elements: Vec<Element>,
 }
 
 impl Document {
@@ -39,6 +40,11 @@ impl Document {
     {
         self.elements.push(element.into());
         self
+    }
+
+    /// Iterate over the Elements in this document.
+    pub fn iter(&self) -> Iter<Element> {
+        self.elements.iter()
     }
 }
 
@@ -261,25 +267,5 @@ impl Renderable for Preamble {
         }
 
         Ok(())
-    }
-}
-
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn render_empty_document() {
-        let should_be = r#"\documentclass{article}
-\begin{document}
-\end{document}
-"#;
-
-        let doc = Document::new(DocumentClass::Article);
-        let mut rendered = vec![];
-        doc.render(&mut rendered).unwrap();
-
-        assert_eq!(String::from_utf8(rendered).unwrap(), should_be);
     }
 }
