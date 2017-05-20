@@ -10,7 +10,7 @@ use errors::*;
 pub struct Section {
     /// The name of the section.
     pub name: String,
-    elements: Vec<Element>,
+    pub(crate) elements: Vec<Element>,
 }
 
 impl Section {
@@ -55,38 +55,5 @@ impl Renderable for Section {
         }
 
         Ok(())
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn render_blank_section() {
-        let should_be = "\\section{First Section}\n";
-        let section = Section::new("First Section");
-
-        let mut rendered = vec![];
-        section.render(&mut rendered).unwrap();
-
-        assert_eq!(String::from_utf8(rendered).unwrap(), should_be);
-    }
-
-    #[test]
-    fn section_with_paragraphs() {
-        let should_be = r#"\section{First Section}
-
-Lorem Ipsum...
-
-Hello World!
-"#;
-        let mut section = Section::new("First Section");
-        section.push("Lorem Ipsum...").push("Hello World!");
-
-        let mut rendered = vec![];
-        section.render(&mut rendered).unwrap();
-
-        assert_eq!(String::from_utf8(rendered).unwrap(), should_be);
     }
 }

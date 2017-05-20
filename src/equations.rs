@@ -52,7 +52,7 @@ impl Equation {
     /// Create an equation which has a label.
     pub fn with_label(label: &str, text: &str) -> Equation {
         let mut eq = Equation::new(text);
-        eq.label(text);
+        eq.label(label);
         eq
     }
 

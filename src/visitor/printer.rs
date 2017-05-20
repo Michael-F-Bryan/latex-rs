@@ -1,8 +1,9 @@
 use std::io::Write;
 
-use document::{Document, Preamble, Element, DocumentClass};
+use document::{Document, Preamble, Element};
 use paragraph::{Paragraph, ParagraphElement};
-use lists::{Item, ListKind, List};
+use lists::{Item, List};
+use section::Section;
 use super::Visitor;
 use errors::*;
 
@@ -45,6 +46,15 @@ impl<W> Visitor for Printer<W>
         }
 
         writeln!(self.writer, r"\end{{document}}")?;
+        Ok(())
+    }
+
+    fn visit_paragraph(&mut self, para: &Paragraph) -> Result<()> {
+        for elem in para.iter() {
+            self.visit_paragraph_element(elem)?;
+        }
+        writeln!(self.writer)?;
+
         Ok(())
     }
 
@@ -129,17 +139,36 @@ impl<W> Visitor for Printer<W>
 
         Ok(())
     }
+
+    fn visit_section(&mut self, section: &Section) -> Result<()> {
+        writeln!(self.writer, r"\section{{{}}}", section.name)?;
+
+        if !section.elements.is_empty() {
+            // Make sure there's space between the \section{...} and the next line
+            writeln!(self.writer)?;
+        }
+
+        for element in section.iter() {
+            self.visit_element(element)?;
+            // LaTeX needs an empty line between paragraphs/elements otherwise
+            // it'll automatically concatenate them together
+            write!(self.writer, "\n")?;
+        }
+
+        Ok(())
+    }
 }
 
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use {Section, ListKind, Paragraph, DocumentClass};
     use self::ParagraphElement::*;
 
     #[test]
     fn create_simple_paragraph() {
-        let should_be = "Hello World";
+        let should_be = "Hello World\n";
         let mut buffer = Vec::new();
 
         let mut para = Paragraph::new();
@@ -155,7 +184,7 @@ mod tests {
 
     #[test]
     fn paragraph_with_bold_text() {
-        let should_be = r"Hello \textbf{World}";
+        let should_be = "Hello \\textbf{World}\n";
         let mut buffer = Vec::new();
 
         let mut para = Paragraph::new();
@@ -172,7 +201,7 @@ mod tests {
 
     #[test]
     fn paragraph_with_italic_text() {
-        let should_be = r"Hello \textit{World}";
+        let should_be = "Hello \\textit{World}\n";
         let mut buffer = Vec::new();
 
         let mut para = Paragraph::new();
@@ -189,7 +218,7 @@ mod tests {
 
     #[test]
     fn inline_code() {
-        let should_be = r"Hello $\lambda$ World!";
+        let should_be = "Hello $\\lambda$ World!\n";
         let mut buffer = Vec::new();
 
 
@@ -314,6 +343,43 @@ mod tests {
         {
             let mut printer = Printer::new(&mut buffer);
             printer.visit_list(&list).unwrap();
+        }
+
+        assert_eq!(String::from_utf8(buffer).unwrap(), should_be);
+    }
+
+    #[test]
+    fn render_blank_section() {
+        let should_be = "\\section{First Section}\n";
+        let mut buffer = Vec::new();
+
+        let section = Section::new("First Section");
+
+        {
+            let mut printer = Printer::new(&mut buffer);
+            printer.visit_section(&section).unwrap();
+        }
+
+        assert_eq!(String::from_utf8(buffer).unwrap(), should_be);
+    }
+
+    #[test]
+    fn section_with_paragraphs() {
+        let should_be = r#"\section{First Section}
+
+Lorem Ipsum...
+
+Hello World!
+
+"#;
+        let mut buffer = Vec::new();
+
+        let mut section = Section::new("First Section");
+        section.push("Lorem Ipsum...").push("Hello World!");
+
+        {
+            let mut printer = Printer::new(&mut buffer);
+            printer.visit_section(&section).unwrap();
         }
 
         assert_eq!(String::from_utf8(buffer).unwrap(), should_be);

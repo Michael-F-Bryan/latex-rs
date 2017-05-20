@@ -1,4 +1,5 @@
 use std::io::Write;
+use std::slice::Iter;
 
 use errors::*;
 use super::Renderable;
@@ -25,6 +26,11 @@ impl Paragraph {
     /// Add some raw text to the paragraph.
     pub fn push_text(&mut self, text: &str) -> &mut Self {
         self.push(ParagraphElement::Plain(text.to_string()))
+    }
+
+    /// Iterate over the `ParagraphElement`s in this `Paragraph`.
+    pub fn iter(&self) -> Iter<ParagraphElement> {
+        self.elements.iter()
     }
 }
 
