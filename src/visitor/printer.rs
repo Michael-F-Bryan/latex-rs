@@ -84,6 +84,31 @@ impl<W> Visitor for Printer<W>
 
         Ok(())
     }
+
+    fn visit_element(&mut self, element: &Element) -> Result<()> {
+        match *element {
+            Element::Para(ref p) => self.visit_paragraph(p)?,
+            Element::Section(ref s) => self.visit_section(s)?,
+            Element::TableOfContents => writeln!(self.writer, r"\tableofcontents")?,
+            Element::TitlePage => writeln!(self.writer, r"\maketitle")?,
+            Element::ClearPage => writeln!(self.writer, r"\clearpage")?,
+            Element::UserDefined(ref s) => writeln!(self.writer, "{}", s)?,
+            Element::Align(ref equations) => self.visit_align(equations)?,
+
+            Element::Environment(ref name, ref lines) => {
+                writeln!(self.writer, r"\begin{{{}}}", name)?;
+                for line in lines {
+                    writeln!(self.writer, "{}", line)?;
+                }
+                writeln!(self.writer, r"\end{{{}}}", name)?;
+            }
+            Element::List(ref list) => self.visit_list(list)?,
+
+            Element::_Other => unreachable!(),
+        }
+
+        Ok(())
+    }
 }
 
 

@@ -1,4 +1,5 @@
 use std::io::Write;
+use std::slice::Iter;
 
 use document::Element;
 use super::Renderable;
@@ -7,7 +8,8 @@ use errors::*;
 /// A document Section.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Section {
-    name: String,
+    /// The name of the section.
+    pub name: String,
     elements: Vec<Element>,
 }
 
@@ -26,6 +28,11 @@ impl Section {
     {
         self.elements.push(element.into());
         self
+    }
+
+    /// Iterate over the elements in this list.
+    pub fn iter(&self) -> Iter<Element> {
+        self.elements.iter()
     }
 }
 
