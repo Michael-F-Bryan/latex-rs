@@ -15,6 +15,8 @@
 //!
 //! # Examples
 //!
+//! ## Creating A Document
+//!
 //! Here's how to create a reasonably complex document containing a title page,
 //! a table of contents, some equations, and two sections.
 //!
@@ -79,9 +81,26 @@
 //! # }
 //! ```
 //!
+//! ## Traversing A Document
+//!
+//! Once you have created a document, you have the ability to walk it and do
+//! any transformation you want using the [`Visitor`] trait. All methods on the
+//! trait come with default `impls` which will recursively visit the various
+//! nodes in your `Document`. This means if you only care about the `Paragraph`
+//! nodes you can implement just the [`visit_paragraph()`] method and then
+//! inspect all `Paragraph` nodes in the document. Everything else should *Just
+//! Work*.
+//!
+//! If you want to see how you can write your own `Visitor`, check out the
+//! source code for the [`Printer`] struct.
+//!
+//!
 //! [latexmk]: http://mg.readthedocs.io/latexmk.html
 //! [`Align`]: struct.Align.html
 //! [`label()`]: struct.Equation.html#method.label
+//! [`Visitor`]: visitor/trait.Visitor.html
+//! [`visit_paragraph()`]: visitor/trait.Visitor.html#method.visit_paragraph
+//! [`Printer`]: visitor/struct.Printer.html
 
 #![deny(missing_docs)]
 
