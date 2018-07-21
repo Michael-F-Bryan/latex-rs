@@ -150,6 +150,7 @@ where
                 writeln!(self.writer, r"\end{{{}}}", name)?;
             }
             Element::List(ref list) => self.visit_list(list)?,
+            Element::Input(ref s) => writeln!(self.writer, "\\input{{{}}}", s)?,
 
             Element::_Other => unreachable!(),
         }
@@ -520,6 +521,18 @@ y &= m x + c \\
         {
             let mut printer = Printer::new(&mut buffer);
             printer.visit_document(&doc).unwrap();
+        }
+        assert_eq!(String::from_utf8(buffer).unwrap(), should_be);
+    }
+
+    #[test]
+    fn input_statement() {
+        let should_be = "\\input{test.tex}";
+        let mut buffer = Vec::new();
+
+        {
+            let mut printer = Printer::new(&mut buffer);
+            printer.visit_element().unwrap()
         }
         assert_eq!(String::from_utf8(buffer).unwrap(), should_be);
     }

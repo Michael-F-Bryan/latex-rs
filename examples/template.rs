@@ -8,7 +8,6 @@ fn create_document() -> Document {
     doc.preamble.author("Henrik");
 
     doc.push(Element::TitlePage).push(Element::ClearPage);
-
     doc
 }
 
@@ -22,10 +21,15 @@ fn create_part_document() -> Document {
 }
 
 fn main() {
-    let part = create_part_document();
-    println!("{}\n", print(&part).unwrap());
+    let mut template = create_document();
+    let mut template2 = template.clone();
 
-    let template = create_document();
-    let rendered = print(&template).unwrap();
-    println!("{}", rendered);
+    let part = create_part_document();
+    println!("{}", print(&part).unwrap());
+
+    template.push(Element::Input("part.tex".into()));
+    println!("{}", print(&template).unwrap());
+
+    template2.push_doc(&part);
+    println!("{}", print(&template2).unwrap());
 }

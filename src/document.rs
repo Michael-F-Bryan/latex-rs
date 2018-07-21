@@ -44,6 +44,15 @@ impl Document {
     pub fn iter(&self) -> Iter<Element> {
         self.elements.iter()
     }
+
+    /// A convience method to include one document into
+    /// another by cloning the individual nodes.
+    pub fn push_doc(&mut self, doc: &Document) -> &mut Self {
+        for element in doc.iter() {
+            self.push(element.clone());
+        }
+        self
+    }
 }
 
 impl Deref for Document {
@@ -94,6 +103,8 @@ pub enum Element {
     UserDefined(String),
     /// A list.
     List(List),
+    /// A generic include statement
+    Input(String),
 
     // Add a dummy element so we can expand later on without breaking stuff
     #[doc(hidden)]

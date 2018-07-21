@@ -50,6 +50,7 @@ pub trait Visitor {
                 self.visit_custom_environment(name, lines.iter().map(Deref::deref))?
             }
             Element::List(ref list) => self.visit_list(list)?,
+            Element::Input(ref s) => self.visit_input(s)?,
 
             _ => {}
         }
@@ -69,6 +70,11 @@ pub trait Visitor {
 
     /// Visit a user defined line.
     fn visit_user_defined_line(&mut self, line: &str) -> Result<()> {
+        Ok(())
+    }
+
+    /// Visit a input element.
+    fn visit_input(&mut self, input: &str) -> Result<()> {
         Ok(())
     }
 

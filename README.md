@@ -47,8 +47,9 @@ generating your `LaTeX` documents:
 - [ ] Tables
 - [ ] Appendices
 - [ ] Included PDF files
-- [ ] `\input{...}` and `\include{...}`
-- [ ] Partial documents
+- [ ] `\include{...}`
+- [x] `\input{...}`
+- [x] Partial documents
 - [ ] References and Bibliography
 - [ ] labels, plus `\ref{...}` for referencing them
 
