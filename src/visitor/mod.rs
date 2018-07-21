@@ -2,17 +2,16 @@
 
 use std::ops::Deref;
 
-use document::{Document, Preamble, Element};
+use document::{Document, DocumentClass, Element, Preamble};
+use equations::{Align, Equation};
+use errors::*;
+use lists::{Item, List};
 use paragraph::{Paragraph, ParagraphElement};
 use section::Section;
-use equations::{Align, Equation};
-use lists::{List, Item};
-use errors::*;
 
 mod printer;
 
 pub use self::printer::{print, Printer};
-
 
 /// A trait which uses the [Visitor Pattern] to recursively visit each node in
 /// a `Document`.
@@ -23,7 +22,9 @@ pub trait Visitor {
     /// Visit the root `Document` node, then recursively visit the preamble and
     /// each element in the `Document`.
     fn visit_document(&mut self, doc: &Document) -> Result<()> {
-        self.visit_preamble(&doc.preamble)?;
+        if doc.class != DocumentClass::Part {
+            self.visit_preamble(&doc.preamble)?;
+        }
 
         for element in doc.iter() {
             self.visit_element(element)?;
@@ -120,7 +121,8 @@ pub trait Visitor {
 
     /// Visit an arbitrary environment and receive an iterator over its lines.
     fn visit_custom_environment<'a, I>(&mut self, name: &str, lines: I) -> Result<()>
-        where I: Iterator<Item = &'a str>
+    where
+        I: Iterator<Item = &'a str>,
     {
         Ok(())
     }

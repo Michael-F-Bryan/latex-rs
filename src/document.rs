@@ -2,10 +2,10 @@ use std::fmt::{self, Display, Formatter};
 use std::ops::Deref;
 use std::slice::Iter;
 
-use paragraph::Paragraph;
-use section::Section;
 use equations::Align;
 use lists::List;
+use paragraph::Paragraph;
+use section::Section;
 
 /// The root Document node.
 #[derive(Clone, Debug, Default, PartialEq)]
@@ -33,7 +33,8 @@ impl Document {
     /// which can be converted into an `Element` using `into()` and supports
     /// the builder pattern with method chaining.
     pub fn push<E>(&mut self, element: E) -> &mut Self
-        where E: Into<Element>
+    where
+        E: Into<Element>,
     {
         self.elements.push(element.into());
         self
@@ -131,16 +132,19 @@ impl From<Section> for Element {
 }
 
 impl<S, I> From<(S, I)> for Element
-    where S: AsRef<str>,
-          I: IntoIterator,
-          I::Item: AsRef<str>
+where
+    S: AsRef<str>,
+    I: IntoIterator,
+    I::Item: AsRef<str>,
 {
     /// Converts a tuple of name and a list of lines into an
     /// `Element::Environment`.
     fn from(other: (S, I)) -> Self {
         let (name, lines) = other;
-        Element::Environment(name.as_ref().to_string(),
-                             lines.into_iter().map(|s| s.as_ref().to_string()).collect())
+        Element::Environment(
+            name.as_ref().to_string(),
+            lines.into_iter().map(|s| s.as_ref().to_string()).collect(),
+        )
     }
 }
 
@@ -151,6 +155,9 @@ pub enum DocumentClass {
     Article,
     Book,
     Report,
+    /// A partial document comes without header and footer.
+    /// It is intended to be included (`include{}`) in some other tex file.
+    Part,
 }
 
 impl Default for DocumentClass {
@@ -165,10 +172,10 @@ impl Display for DocumentClass {
             DocumentClass::Article => write!(f, "article"),
             DocumentClass::Book => write!(f, "book"),
             DocumentClass::Report => write!(f, "report"),
+            DocumentClass::Part => write!(f, ""),
         }
     }
 }
-
 
 /// A node representing the document's preamble.
 #[derive(Clone, Debug, Default, PartialEq)]
