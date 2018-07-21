@@ -527,12 +527,13 @@ y &= m x + c \\
 
     #[test]
     fn input_statement() {
-        let should_be = "\\input{test.tex}";
+        let should_be = "\\input{test.tex}\n";
         let mut buffer = Vec::new();
+        let input = Element::Input("test.tex".into());
 
         {
             let mut printer = Printer::new(&mut buffer);
-            printer.visit_element().unwrap()
+            printer.visit_element(&input).unwrap()
         }
         assert_eq!(String::from_utf8(buffer).unwrap(), should_be);
     }
