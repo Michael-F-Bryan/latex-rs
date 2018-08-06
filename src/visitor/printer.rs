@@ -1,13 +1,12 @@
 use std::io::Write;
 
-use document::{Document, Preamble, Element};
-use paragraph::{Paragraph, ParagraphElement};
-use lists::{Item, List};
-use section::Section;
-use equations::{Align, Equation};
 use super::Visitor;
+use document::{Document, DocumentClass, Element, Preamble};
+use equations::{Align, Equation};
 use errors::*;
-
+use lists::{Item, List};
+use paragraph::{Paragraph, ParagraphElement};
+use section::Section;
 
 /// Print a document to a string.
 pub fn print(doc: &Document) -> Result<String> {
@@ -28,7 +27,8 @@ pub struct Printer<W> {
 }
 
 impl<W> Printer<W>
-    where W: Write
+where
+    W: Write,
 {
     /// Create a new `Printer` which will write to the provided `Writer`.
     pub fn new(writer: W) -> Printer<W> {
@@ -37,20 +37,32 @@ impl<W> Printer<W>
 }
 
 impl<W> Visitor for Printer<W>
-    where W: Write
+where
+    W: Write,
 {
     fn visit_document(&mut self, doc: &Document) -> Result<()> {
-        writeln!(self.writer, r"\documentclass{{{}}}", doc.class)?;
+        match doc.class {
+            // only go through childs if we have a partial document
+            DocumentClass::Part => {
+                for element in doc.iter() {
+                    self.visit_element(element)?;
+                }
+            }
+            // write a full document
+            _ => {
+                writeln!(self.writer, r"\documentclass{{{}}}", doc.class)?;
 
-        self.visit_preamble(&doc.preamble)?;
+                self.visit_preamble(&doc.preamble)?;
 
-        writeln!(self.writer, r"\begin{{document}}")?;
+                writeln!(self.writer, r"\begin{{document}}")?;
 
-        for element in doc.iter() {
-            self.visit_element(element)?;
+                for element in doc.iter() {
+                    self.visit_element(element)?;
+                }
+
+                writeln!(self.writer, r"\end{{document}}")?;
+            }
         }
-
-        writeln!(self.writer, r"\end{{document}}")?;
         Ok(())
     }
 
@@ -138,6 +150,7 @@ impl<W> Visitor for Printer<W>
                 writeln!(self.writer, r"\end{{{}}}", name)?;
             }
             Element::List(ref list) => self.visit_list(list)?,
+            Element::Input(ref s) => writeln!(self.writer, "\\input{{{}}}", s)?,
 
             Element::_Other => unreachable!(),
         }
@@ -190,12 +203,11 @@ impl<W> Visitor for Printer<W>
     }
 }
 
-
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use {Section, ListKind, Paragraph, DocumentClass, Equation, Align};
     use self::ParagraphElement::*;
+    use super::*;
+    use {Align, DocumentClass, Equation, ListKind, Paragraph, Section};
 
     #[test]
     fn create_simple_paragraph() {
@@ -252,7 +264,6 @@ mod tests {
         let should_be = "Hello $\\lambda$ World!\n";
         let mut buffer = Vec::new();
 
-
         let mut para = Paragraph::new();
         para.push_text("Hello ")
             .push(InlineMath(r"\lambda".to_string()))
@@ -307,7 +318,6 @@ mod tests {
         assert_eq!(String::from_utf8(buffer).unwrap(), should_be);
     }
 
-
     #[test]
     fn render_empty_document() {
         let should_be = r#"\documentclass{article}
@@ -325,7 +335,6 @@ mod tests {
 
         assert_eq!(String::from_utf8(buffer).unwrap(), should_be);
     }
-
 
     #[test]
     fn render_enumerated_list() {
@@ -437,7 +446,6 @@ Hello World!
         let mut buffer = Vec::new();
         let eq = Equation::new(r"x &= y + \sigma");
 
-
         {
             let mut printer = Printer::new(&mut buffer);
             printer.visit_equation(&eq).unwrap();
@@ -458,7 +466,10 @@ y &= m x + c \\
         let mut equations = Align::new();
 
         equations
-            .push(Equation::with_label("eq:mass-energy-equivalence", "E &= m c^2"))
+            .push(Equation::with_label(
+                "eq:mass-energy-equivalence",
+                "E &= m c^2",
+            ))
             .push("y &= m x + c");
 
         {
@@ -498,6 +509,32 @@ y &= m x + c \\
             printer.visit_equation(&eq).unwrap();
         }
 
+        assert_eq!(String::from_utf8(buffer).unwrap(), should_be);
+    }
+
+    #[test]
+    fn partial_document() {
+        let should_be = "";
+        let mut buffer = Vec::new();
+        let mut doc = Document::new(DocumentClass::Part);
+
+        {
+            let mut printer = Printer::new(&mut buffer);
+            printer.visit_document(&doc).unwrap();
+        }
+        assert_eq!(String::from_utf8(buffer).unwrap(), should_be);
+    }
+
+    #[test]
+    fn input_statement() {
+        let should_be = "\\input{test.tex}\n";
+        let mut buffer = Vec::new();
+        let input = Element::Input("test.tex".into());
+
+        {
+            let mut printer = Printer::new(&mut buffer);
+            printer.visit_element(&input).unwrap()
+        }
         assert_eq!(String::from_utf8(buffer).unwrap(), should_be);
     }
 }
