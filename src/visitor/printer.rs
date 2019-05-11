@@ -1,7 +1,7 @@
 use std::io::Write;
 
 use super::Visitor;
-use document::{Document, DocumentClass, Element, Preamble};
+use document::{Document, DocumentClass, Element, Preamble, PreambleElement};
 use equations::{Align, Equation};
 use errors::*;
 use lists::{Item, List};
@@ -96,7 +96,13 @@ where
 
     fn visit_preamble(&mut self, preamble: &Preamble) -> Result<()> {
         for item in preamble.iter() {
-            writeln!(self.writer, r"\usepackage{{{}}}", item)?;
+            match item {
+                PreambleElement::UsePackage{package: pkg, argument:None}
+                  => writeln!(self.writer, r"\usepackage{{{}}}", pkg)?,
+                PreambleElement::UsePackage{package: pkg, argument:Some(arg)}
+                  => writeln!(self.writer, r"\usepackage[{}]{{{}}}", arg, pkg)?,
+                PreambleElement::UserDefined(s) => writeln!(self.writer, r"{}", s)?,
+            }
         }
 
         if !preamble.is_empty() && (preamble.title.is_some() || preamble.author.is_some()) {
