@@ -23,7 +23,7 @@
 //! ```rust
 //! use latex::{DocumentClass, Element, Document, Section, Align};
 //!
-//! # fn run() -> latex::Result<()> {
+//! # fn run() -> Result<(), Box<dyn std::error::Error>> {
 //! let mut doc = Document::new(DocumentClass::Article);
 //!
 //! // Set some metadata for the document
@@ -64,7 +64,7 @@
 //! use std::io::Write;
 //! use std::process::Command;
 //!
-//! # fn run() -> latex::Result<()> {
+//! # fn run() -> Result<(), Box<dyn std::error::Error>> {
 //! # let rendered = String::new();
 //! // Write our rendered text to a file
 //! let mut f = File::open("report.tex")?;
@@ -104,30 +104,19 @@
 
 #![deny(missing_docs)]
 
-#[macro_use]
-extern crate error_chain;
+extern crate failure;
 
-mod paragraph;
 mod document;
-mod section;
-mod lists;
 mod equations;
-pub mod visitor;
+mod lists;
+mod paragraph;
+mod section;
+mod visitor;
 
-pub use errors::*;
 pub use document::{Document, DocumentClass, Element, Preamble, PreambleElement};
 pub use paragraph::{Paragraph, ParagraphElement};
-pub use section::Section;
-pub use lists::{List, ListKind, Item};
 pub use equations::{Align, Equation};
-pub use visitor::{print, Visitor};
+pub use lists::{Item, List, ListKind};
+pub use section::Section;
 
-mod errors {
-    error_chain!{
-        foreign_links{
-            Io(::std::io::Error) #[doc = "Wrapper around `std::io::Error`"];
-            Fmt(::std::fmt::Error) #[doc = "A formatting error"];
-            UtfError(::std::string::FromUtf8Error) #[doc = "A UTF8 conversion error"];
-        }
-    }
-}
+pub use visitor::{print, Visitor};

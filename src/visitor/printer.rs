@@ -3,13 +3,13 @@ use std::io::Write;
 use super::Visitor;
 use document::{Document, DocumentClass, Element, Preamble, PreambleElement};
 use equations::{Align, Equation};
-use errors::*;
+use failure::Error;
 use lists::{Item, List};
 use paragraph::{Paragraph, ParagraphElement};
 use section::Section;
 
 /// Print a document to a string.
-pub fn print(doc: &Document) -> Result<String> {
+pub fn print(doc: &Document) -> Result<String, Error> {
     let mut buffer = Vec::new();
     {
         let mut printer = Printer::new(&mut buffer);
@@ -40,7 +40,7 @@ impl<W> Visitor for Printer<W>
 where
     W: Write,
 {
-    fn visit_document(&mut self, doc: &Document) -> Result<()> {
+    fn visit_document(&mut self, doc: &Document) -> Result<(), Error> {
         match doc.class {
             // only go through childs if we have a partial document
             DocumentClass::Part => {
@@ -66,7 +66,7 @@ where
         Ok(())
     }
 
-    fn visit_paragraph(&mut self, para: &Paragraph) -> Result<()> {
+    fn visit_paragraph(&mut self, para: &Paragraph) -> Result<(), Error> {
         for elem in para.iter() {
             self.visit_paragraph_element(elem)?;
         }
@@ -75,7 +75,7 @@ where
         Ok(())
     }
 
-    fn visit_paragraph_element(&mut self, element: &ParagraphElement) -> Result<()> {
+    fn visit_paragraph_element(&mut self, element: &ParagraphElement) -> Result<(), Error> {
         match *element {
             ParagraphElement::Plain(ref s) => write!(self.writer, "{}", s)?,
             ParagraphElement::InlineMath(ref s) => write!(self.writer, "${}$", s)?,
@@ -94,13 +94,17 @@ where
         Ok(())
     }
 
-    fn visit_preamble(&mut self, preamble: &Preamble) -> Result<()> {
+    fn visit_preamble(&mut self, preamble: &Preamble) -> Result<(), Error> {
         for item in preamble.iter() {
             match item {
-                PreambleElement::UsePackage{package: pkg, argument:None}
-                  => writeln!(self.writer, r"\usepackage{{{}}}", pkg)?,
-                PreambleElement::UsePackage{package: pkg, argument:Some(arg)}
-                  => writeln!(self.writer, r"\usepackage[{}]{{{}}}", arg, pkg)?,
+                PreambleElement::UsePackage {
+                    package: pkg,
+                    argument: None,
+                } => writeln!(self.writer, r"\usepackage{{{}}}", pkg)?,
+                PreambleElement::UsePackage {
+                    package: pkg,
+                    argument: Some(arg),
+                } => writeln!(self.writer, r"\usepackage[{}]{{{}}}", arg, pkg)?,
                 PreambleElement::UserDefined(s) => writeln!(self.writer, r"{}", s)?,
             }
         }
@@ -119,7 +123,7 @@ where
         Ok(())
     }
 
-    fn visit_list(&mut self, list: &List) -> Result<()> {
+    fn visit_list(&mut self, list: &List) -> Result<(), Error> {
         let env = list.kind.environment_name();
 
         writeln!(self.writer, r"\begin{{{}}}", env)?;
@@ -133,12 +137,12 @@ where
         Ok(())
     }
 
-    fn visit_list_item(&mut self, item: &Item) -> Result<()> {
+    fn visit_list_item(&mut self, item: &Item) -> Result<(), Error> {
         writeln!(self.writer, r"\item {}", item.0)?;
         Ok(())
     }
 
-    fn visit_element(&mut self, element: &Element) -> Result<()> {
+    fn visit_element(&mut self, element: &Element) -> Result<(), Error> {
         match *element {
             Element::Para(ref p) => self.visit_paragraph(p)?,
             Element::Section(ref s) => self.visit_section(s)?,
@@ -164,7 +168,7 @@ where
         Ok(())
     }
 
-    fn visit_section(&mut self, section: &Section) -> Result<()> {
+    fn visit_section(&mut self, section: &Section) -> Result<(), Error> {
         writeln!(self.writer, r"\section{{{}}}", section.name)?;
 
         if !section.is_empty() {
@@ -182,7 +186,7 @@ where
         Ok(())
     }
 
-    fn visit_equation(&mut self, equation: &Equation) -> Result<()> {
+    fn visit_equation(&mut self, equation: &Equation) -> Result<(), Error> {
         write!(self.writer, r"{}", equation.get_text())?;
 
         if let Some(ref label) = equation.get_label() {
@@ -196,7 +200,7 @@ where
         Ok(())
     }
 
-    fn visit_align(&mut self, align: &Align) -> Result<()> {
+    fn visit_align(&mut self, align: &Align) -> Result<(), Error> {
         writeln!(self.writer, r"\begin{{align}}")?;
 
         for item in align.iter() {
@@ -522,7 +526,7 @@ y &= m x + c \\
     fn partial_document() {
         let should_be = "";
         let mut buffer = Vec::new();
-        let mut doc = Document::new(DocumentClass::Part);
+        let doc = Document::new(DocumentClass::Part);
 
         {
             let mut printer = Printer::new(&mut buffer);

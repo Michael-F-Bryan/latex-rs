@@ -1,17 +1,16 @@
 //! A trait which lets you walk your document's AST.
 
-use std::ops::Deref;
-
-use document::{Document, DocumentClass, Element, Preamble};
-use equations::{Align, Equation};
-use errors::*;
-use lists::{Item, List};
-use paragraph::{Paragraph, ParagraphElement};
-use section::Section;
-
 mod printer;
 
 pub use self::printer::{print, Printer};
+
+use ::document::{Document, DocumentClass, Element, Preamble};
+use ::lists::{List, Item};
+use ::equations::{Align, Equation};
+use ::failure::Error;
+use ::paragraph::{Paragraph, ParagraphElement};
+use ::section::Section;
+use std::ops::Deref;
 
 /// A trait which uses the [Visitor Pattern] to recursively visit each node in
 /// a `Document`.
@@ -21,7 +20,7 @@ pub use self::printer::{print, Printer};
 pub trait Visitor {
     /// Visit the root `Document` node, then recursively visit the preamble and
     /// each element in the `Document`.
-    fn visit_document(&mut self, doc: &Document) -> Result<()> {
+    fn visit_document(&mut self, doc: &Document) -> Result<(), Error> {
         if doc.class != DocumentClass::Part {
             self.visit_preamble(&doc.preamble)?;
         }
@@ -39,7 +38,7 @@ pub trait Visitor {
     /// > **Note:** You probably don't want to implement this one yourself. If
     /// you forget to recursively visit each and every variant of `Element`
     /// you may end up accidentally ignoring half your document!
-    fn visit_element(&mut self, elem: &Element) -> Result<()> {
+    fn visit_element(&mut self, elem: &Element) -> Result<(), Error> {
         match *elem {
             Element::Para(ref p) => self.visit_paragraph(p)?,
             Element::Section(ref s) => self.visit_section(s)?,
@@ -59,27 +58,27 @@ pub trait Visitor {
     }
 
     /// Visit a document's `Preamble`.
-    fn visit_preamble(&mut self, preamble: &Preamble) -> Result<()> {
+    fn visit_preamble(&mut self, preamble: &Preamble) -> Result<(), Error> {
         Ok(())
     }
 
     /// Visit an element in a `Paragraph` (e.g. `Italic`, `InlineCode`).
-    fn visit_paragraph_element(&mut self, element: &ParagraphElement) -> Result<()> {
+    fn visit_paragraph_element(&mut self, element: &ParagraphElement) -> Result<(), Error> {
         Ok(())
     }
 
     /// Visit a user defined line.
-    fn visit_user_defined_line(&mut self, line: &str) -> Result<()> {
+    fn visit_user_defined_line(&mut self, line: &str) -> Result<(), Error> {
         Ok(())
     }
 
     /// Visit a input element.
-    fn visit_input(&mut self, input: &str) -> Result<()> {
+    fn visit_input(&mut self, input: &str) -> Result<(), Error> {
         Ok(())
     }
 
     /// Visit a paragraph, and every `ParagraphElement` in it.
-    fn visit_paragraph(&mut self, paragraph: &Paragraph) -> Result<()> {
+    fn visit_paragraph(&mut self, paragraph: &Paragraph) -> Result<(), Error> {
         for elem in &paragraph.elements {
             self.visit_paragraph_element(elem)?;
         }
@@ -88,7 +87,7 @@ pub trait Visitor {
     }
 
     /// Visit a `Section` and then recursively visit each of its `Element`s.
-    fn visit_section(&mut self, section: &Section) -> Result<()> {
+    fn visit_section(&mut self, section: &Section) -> Result<(), Error> {
         for elem in section.iter() {
             self.visit_element(elem)?;
         }
@@ -98,7 +97,7 @@ pub trait Visitor {
 
     /// Visit an `Align` block and then recursively visit each equation in the
     /// block.
-    fn visit_align(&mut self, align: &Align) -> Result<()> {
+    fn visit_align(&mut self, align: &Align) -> Result<(), Error> {
         for equation in align.iter() {
             self.visit_equation(equation)?;
         }
@@ -107,12 +106,12 @@ pub trait Visitor {
     }
 
     /// Visit a single `Equation`.
-    fn visit_equation(&mut self, equation: &Equation) -> Result<()> {
+    fn visit_equation(&mut self, equation: &Equation) -> Result<(), Error> {
         Ok(())
     }
 
     /// Visit a `List` and all of its items.
-    fn visit_list(&mut self, list: &List) -> Result<()> {
+    fn visit_list(&mut self, list: &List) -> Result<(), Error> {
         for item in list.iter() {
             self.visit_list_item(item)?;
         }
@@ -121,12 +120,12 @@ pub trait Visitor {
     }
 
     /// Visit a single list item.
-    fn visit_list_item(&mut self, item: &Item) -> Result<()> {
+    fn visit_list_item(&mut self, item: &Item) -> Result<(), Error> {
         Ok(())
     }
 
     /// Visit an arbitrary environment and receive an iterator over its lines.
-    fn visit_custom_environment<'a, I>(&mut self, name: &str, lines: I) -> Result<()>
+    fn visit_custom_environment<'a, I>(&mut self, name: &str, lines: I) -> Result<(), Error>
     where
         I: Iterator<Item = &'a str>,
     {
