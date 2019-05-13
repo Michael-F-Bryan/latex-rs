@@ -4,12 +4,12 @@ mod printer;
 
 pub use self::printer::{print, Printer};
 
-use ::document::{Document, DocumentClass, Element, Preamble};
-use ::lists::{List, Item};
-use ::equations::{Align, Equation};
-use ::failure::Error;
-use ::paragraph::{Paragraph, ParagraphElement};
-use ::section::Section;
+use document::{Document, DocumentClass, Element, Preamble};
+use equations::{Align, Equation};
+use failure::Error;
+use lists::{Item, List};
+use paragraph::{Paragraph, ParagraphElement};
+use section::Section;
 use std::ops::Deref;
 
 /// A trait which uses the [Visitor Pattern] to recursively visit each node in

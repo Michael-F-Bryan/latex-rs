@@ -1,7 +1,6 @@
 extern crate latex;
 
-use latex::{DocumentClass, Element, Document, Section, print};
-
+use latex::{print, Document, DocumentClass, Element, Section};
 
 fn create_document() -> Document {
     let mut doc = Document::new(DocumentClass::Article);

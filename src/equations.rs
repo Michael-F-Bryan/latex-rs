@@ -1,5 +1,5 @@
-use std::slice::Iter;
 use std::ops::Deref;
+use std::slice::Iter;
 
 /// A single equation.
 ///
@@ -145,7 +145,6 @@ impl<'a> From<&'a str> for Equation {
         Equation::new(other)
     }
 }
-
 
 impl<'a> From<&'a str> for Align {
     /// Convert a string into a single equation wrapped in an `align`.

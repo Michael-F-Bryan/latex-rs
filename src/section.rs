@@ -25,7 +25,8 @@ impl Section {
 
     /// Add an element to the Section.
     pub fn push<I>(&mut self, element: I) -> &mut Self
-        where I: Into<Element>
+    where
+        I: Into<Element>,
     {
         self.elements.push(element.into());
         self

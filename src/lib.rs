@@ -114,9 +114,9 @@ mod section;
 mod visitor;
 
 pub use document::{Document, DocumentClass, Element, Preamble, PreambleElement};
-pub use paragraph::{Paragraph, ParagraphElement};
 pub use equations::{Align, Equation};
 pub use lists::{Item, List, ListKind};
+pub use paragraph::{Paragraph, ParagraphElement};
 pub use section::Section;
 
 pub use visitor::{print, Visitor};

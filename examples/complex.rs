@@ -1,6 +1,6 @@
 extern crate latex;
 
-use latex::{Document, DocumentClass, print, Element, Section, Align, Equation, List, ListKind};
+use latex::{print, Align, Document, DocumentClass, Element, Equation, List, ListKind, Section};
 
 // const COMPLEX: &'static str = include_str!("complex.tex");
 
@@ -50,7 +50,6 @@ fn first_section() -> Section {
 
     section_1
 }
-
 
 pub fn main() {
     let doc = create_document();

@@ -39,7 +39,8 @@ impl Paragraph {
 
     /// Add a `ParagraphElement` to the `Paragraph`.
     pub fn push<P>(&mut self, elem: P) -> &mut Self
-        where P: Into<ParagraphElement>
+    where
+        P: Into<ParagraphElement>,
     {
         self.elements.push(elem.into());
         self
@@ -56,7 +57,6 @@ impl Paragraph {
     }
 }
 
-
 impl<'a> From<&'a str> for Paragraph {
     fn from(other: &'a str) -> Paragraph {
         let mut para = Paragraph::new();
@@ -64,7 +64,6 @@ impl<'a> From<&'a str> for Paragraph {
         para
     }
 }
-
 
 /// The various paragraph elements.
 ///
@@ -85,14 +84,16 @@ pub enum ParagraphElement {
 impl ParagraphElement {
     /// Convenience method for wrapping a `ParagraphElement` in an italics tag.
     pub fn italic<E>(elem: E) -> ParagraphElement
-        where E: Into<ParagraphElement>
+    where
+        E: Into<ParagraphElement>,
     {
         ParagraphElement::Italic(Box::new(elem.into()))
     }
 
     /// Convenience method for wrapping a `ParagraphElement` in a bold tag.
     pub fn bold<E>(elem: E) -> ParagraphElement
-        where E: Into<ParagraphElement>
+    where
+        E: Into<ParagraphElement>,
     {
         ParagraphElement::Bold(Box::new(elem.into()))
     }

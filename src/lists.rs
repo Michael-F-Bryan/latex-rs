@@ -1,5 +1,5 @@
-use std::slice::Iter;
 use std::ops::Deref;
+use std::slice::Iter;
 
 /// Wrapper around a single list item.
 ///
@@ -84,7 +84,6 @@ impl List {
         self.items.iter()
     }
 }
-
 
 #[cfg(test)]
 mod tests {

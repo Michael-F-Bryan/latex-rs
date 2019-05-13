@@ -194,10 +194,13 @@ impl Display for DocumentClass {
 #[derive(Clone, Debug, PartialEq)]
 #[allow(missing_docs)]
 pub enum PreambleElement {
-  /// Use a package with an optional argument.  
-  UsePackage{ package: String, argument: Option<String> },
-  /// An escape hatch for including an arbitrary bit of TeX in a preamble.
-  UserDefined(String),
+    /// Use a package with an optional argument.  
+    UsePackage {
+        package: String,
+        argument: Option<String>,
+    },
+    /// An escape hatch for including an arbitrary bit of TeX in a preamble.
+    UserDefined(String),
 }
 
 /// A node representing the document's preamble.
@@ -225,9 +228,10 @@ impl Preamble {
 
     /// Add a package import to the preamble.
     pub fn use_package(&mut self, name: &str) -> &mut Self {
-        self.contents.push(PreambleElement::UsePackage{
+        self.contents.push(PreambleElement::UsePackage {
             package: name.to_string(),
-            argument: None});
+            argument: None,
+        });
         self
     }
 
@@ -253,5 +257,4 @@ impl Preamble {
         self.contents.push(element.into());
         self
     }
-
 }
