@@ -115,7 +115,7 @@ mod equations;
 pub mod visitor;
 
 pub use errors::*;
-pub use document::{Document, DocumentClass, Element, Preamble};
+pub use document::{Document, DocumentClass, Element, Preamble, PreambleElement};
 pub use paragraph::{Paragraph, ParagraphElement};
 pub use section::Section;
 pub use lists::{List, ListKind, Item};

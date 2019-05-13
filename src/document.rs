@@ -169,6 +169,7 @@ pub enum DocumentClass {
     /// A partial document comes without header and footer.
     /// It is intended to be included (`include{}`) in some other tex file.
     Part,
+    Other(String),
 }
 
 impl Default for DocumentClass {
@@ -184,8 +185,19 @@ impl Display for DocumentClass {
             DocumentClass::Book => write!(f, "book"),
             DocumentClass::Report => write!(f, "report"),
             DocumentClass::Part => write!(f, ""),
+            DocumentClass::Other(ref s) => write!(f, "{}", *s),
         }
     }
+}
+
+/// An element of the document's preamble.
+#[derive(Clone, Debug, PartialEq)]
+#[allow(missing_docs)]
+pub enum PreambleElement {
+  /// Use a package with an optional argument.  
+  UsePackage{ package: String, argument: Option<String> },
+  /// An escape hatch for including an arbitrary bit of TeX in a preamble.
+  UserDefined(String),
 }
 
 /// A node representing the document's preamble.
@@ -195,7 +207,7 @@ pub struct Preamble {
     pub author: Option<String>,
     /// An optional title for the document.
     pub title: Option<String>,
-    uses: Vec<String>,
+    contents: Vec<PreambleElement>,
 }
 
 impl Preamble {
@@ -213,17 +225,33 @@ impl Preamble {
 
     /// Add a package import to the preamble.
     pub fn use_package(&mut self, name: &str) -> &mut Self {
-        self.uses.push(name.to_string());
+        self.contents.push(PreambleElement::UsePackage{
+            package: name.to_string(),
+            argument: None});
         self
     }
 
     /// Iterate over each package used in the Preamble.
-    pub fn iter(&self) -> Iter<String> {
-        self.uses.iter()
+    pub fn iter(&self) -> Iter<PreambleElement> {
+        self.contents.iter()
     }
 
-    /// Are any packages being imported in the Preamble?
+    /// Is the preamble empty?
     pub fn is_empty(&self) -> bool {
-        self.uses.is_empty()
+        self.contents.is_empty()
     }
+
+    /// Add a PreambleElement to the `Preamble`.
+    ///
+    /// To make this work as seamlessly as possible, it will accept anything
+    /// which can be converted into an `PreambleElement` using `into()` and supports
+    /// the builder pattern with method chaining.
+    pub fn push<E>(&mut self, element: E) -> &mut Self
+    where
+        E: Into<PreambleElement>,
+    {
+        self.contents.push(element.into());
+        self
+    }
+
 }
