@@ -68,7 +68,7 @@ impl List {
     /// Create an empty list of the specified type.
     pub fn new(kind: ListKind) -> List {
         List {
-            kind: kind,
+            kind,
             items: Vec::new(),
         }
     }

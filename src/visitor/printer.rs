@@ -32,7 +32,7 @@ where
 {
     /// Create a new `Printer` which will write to the provided `Writer`.
     pub fn new(writer: W) -> Printer<W> {
-        Printer { writer: writer }
+        Printer { writer }
     }
 }
 
@@ -180,7 +180,7 @@ where
             self.visit_element(element)?;
             // LaTeX needs an empty line between paragraphs/elements otherwise
             // it'll automatically concatenate them together
-            write!(self.writer, "\n")?;
+            writeln!(self.writer)?;
         }
 
         Ok(())
