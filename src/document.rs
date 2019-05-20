@@ -190,6 +190,14 @@ impl Display for DocumentClass {
     }
 }
 
+impl Extend<Element> for Document {
+    fn extend<T: IntoIterator<Item=Element>>(&mut self, iter:T) {
+    for elem in iter {
+      self.push(elem);
+    }
+  }
+}
+
 /// An element of the document's preamble.
 #[derive(Clone, Debug, PartialEq)]
 #[allow(missing_docs)]
@@ -257,4 +265,13 @@ impl Preamble {
         self.contents.push(element.into());
         self
     }
+
+}
+
+impl Extend<PreambleElement> for Preamble {
+    fn extend<T: IntoIterator<Item=PreambleElement>>(&mut self, iter:T) {
+    for elem in iter {
+      self.push(elem);
+    }
+  }
 }
