@@ -126,7 +126,11 @@ where
     fn visit_list(&mut self, list: &List) -> Result<(), Error> {
         let env = list.kind.environment_name();
 
-        writeln!(self.writer, r"\begin{{{}}}", env)?;
+        if let Some(argument) = &list.argument {
+            writeln!(self.writer, r"\begin{{{}}}[{}]", env, argument)?;
+        } else {
+            writeln!(self.writer, r"\begin{{{}}}", env)?;
+        }
 
         for item in list.iter() {
             self.visit_list_item(item)?;
@@ -389,6 +393,24 @@ mod tests {
 
         let mut list = List::new(ListKind::Itemize);
         list.push("This").push("is").push("a").push("list!");
+
+        {
+            let mut printer = Printer::new(&mut buffer);
+            printer.visit_list(&list).unwrap();
+        }
+
+        assert_eq!(String::from_utf8(buffer).unwrap(), should_be);
+    }
+
+    #[test]
+    fn render_list_with_argument() {
+        let should_be = r"\begin{itemize}[noitemsep]
+\end{itemize}
+";
+        let mut buffer = Vec::new();
+
+        let mut list = List::new(ListKind::Itemize);
+        list.argument = Some("noitemsep".to_string());
 
         {
             let mut printer = Printer::new(&mut buffer);
