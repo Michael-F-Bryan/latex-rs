@@ -105,6 +105,23 @@ where
                     package: pkg,
                     argument: Some(arg),
                 } => writeln!(self.writer, r"\usepackage[{}]{{{}}}", arg, pkg)?,
+                PreambleElement::NewCommand {
+                    name,
+                    args_num,
+                    default_arg,
+                    definition
+                } => {
+                    write!(self.writer, r"\newcommand{{\{}}}", name)?;
+                    if let Some(num) = args_num {
+                        write!(self.writer, r"[{}]", num)?;
+                    }
+                    if let Some(arg) = default_arg {
+                        write!(self.writer, r"[{}]", arg)?;
+                    }
+                    writeln!(self.writer, r"{{")?;
+                    writeln!(self.writer, "{}", definition)?;
+                    writeln!(self.writer, r"}}")?;
+                },
                 PreambleElement::UserDefined(s) => writeln!(self.writer, r"{}", s)?,
             }
         }
@@ -320,6 +337,49 @@ mod tests {
             .use_package("amsmath")
             .use_package("graphics");
 
+        {
+            let mut printer = Printer::new(&mut buffer);
+            printer.visit_preamble(&preamble).unwrap();
+        }
+
+        assert_eq!(String::from_utf8(buffer).unwrap(), should_be);
+    }
+
+    #[test]
+    fn preamble_with_newcommand() {
+        let should_be = r#"\newcommand{\Love}[2]{
+#1 loves #2
+}
+"#;
+        let mut buffer = Vec::new();
+        let mut preamble = Preamble::default();
+        preamble.new_command("Love", 2, "#1 loves #2");
+        
+        {
+            let mut printer = Printer::new(&mut buffer);
+            printer.visit_preamble(&preamble).unwrap();
+        }
+
+        assert_eq!(String::from_utf8(buffer).unwrap(), should_be);
+    }
+
+    #[test]
+    fn preamble_with_newcommand_with_default_argument() {
+        let should_be = r#"\newcommand{\Love}[3][likes]{
+#2 #1 #3
+}
+"#;
+        let mut buffer = Vec::new();
+        let mut preamble = Preamble::default();
+        preamble.push(
+            PreambleElement::NewCommand {
+                name: String::from("Love"),
+                args_num: Some(3),
+                default_arg: Some(String::from("likes")),
+                definition: String::from("#2 #1 #3")
+            }
+        );
+        
         {
             let mut printer = Printer::new(&mut buffer);
             printer.visit_preamble(&preamble).unwrap();
