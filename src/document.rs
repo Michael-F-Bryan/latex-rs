@@ -207,6 +207,13 @@ pub enum PreambleElement {
         package: String,
         argument: Option<String>,
     },
+    /// Create a `/newcommand` line in latex
+    NewCommand {
+        name: String,
+        args_num: Option<usize>,
+        default_arg: Option<String>,
+        definition: String
+    },
     /// An escape hatch for including an arbitrary bit of TeX in a preamble.
     UserDefined(String),
 }
@@ -240,6 +247,27 @@ impl Preamble {
             package: name.to_string(),
             argument: None,
         });
+        self
+    }
+
+    /// Interface of most commonly used way to write a `/newcommand` line in latex.  
+    /// If you want to create `/newcommand` in 
+    /// other ways(like add default argument or do not assign the num of arguments), 
+    /// please use `push` method in `Preamble` struct. 
+    pub fn new_command(
+        &mut self,
+        name: &str,
+        args_num: usize,
+        definition: &str
+    ) -> &mut Self {
+        self.contents.push(
+            PreambleElement::NewCommand {
+                name: String::from(name),
+                args_num: Some(args_num),
+                default_arg: None,
+                definition: String::from(definition)
+            }
+        );
         self
     }
 
