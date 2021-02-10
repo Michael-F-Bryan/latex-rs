@@ -61,6 +61,7 @@ impl ListKind {
 pub struct List {
     /// The kind of list this is.
     pub kind: ListKind,
+    pub(crate) argument: Option<String>,
     items: Vec<Item>,
 }
 
@@ -69,6 +70,7 @@ impl List {
     pub fn new(kind: ListKind) -> List {
         List {
             kind,
+            argument: None,
             items: Vec::new(),
         }
     }
@@ -76,6 +78,12 @@ impl List {
     /// Add an element to the list.
     pub fn push<S: AsRef<str>>(&mut self, item: S) -> &mut Self {
         self.items.push(Item(item.as_ref().to_string()));
+        self
+    }
+
+    /// Add a list argument
+    pub fn argument<S: AsRef<str>>(&mut self, item: S) -> &mut Self {
+        self.argument = Some(item.as_ref().to_string());
         self
     }
 
