@@ -2,6 +2,8 @@
 
 mod printer;
 
+use crate::{Table, table::TableRow};
+
 pub use self::printer::{print, Printer};
 
 use document::{Document, DocumentClass, Element, Preamble};
@@ -116,6 +118,16 @@ pub trait Visitor {
             self.visit_list_item(item)?;
         }
 
+        Ok(())
+    }
+
+    /// Visit a `Table`.
+    fn visit_table(&mut self, table: &Table) -> Result<(), Error> {
+        Ok(())
+    }
+
+    /// Visit a single table row.
+    fn visit_table_row(&mut self, row: &TableRow) -> Result<(), Error> {
         Ok(())
     }
 

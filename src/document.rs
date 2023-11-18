@@ -6,6 +6,7 @@ use equations::Align;
 use lists::List;
 use paragraph::Paragraph;
 use section::Section;
+use crate::Table;
 
 /// The root Document node.
 #[derive(Clone, Debug, Default, PartialEq)]
@@ -103,6 +104,8 @@ pub enum Element {
     UserDefined(String),
     /// A list.
     List(List),
+    /// A Table.
+    Table(Table),
     /// A generic include statement
     Input(String),
 
@@ -192,10 +195,10 @@ impl Display for DocumentClass {
 
 impl Extend<Element> for Document {
     fn extend<T: IntoIterator<Item=Element>>(&mut self, iter:T) {
-    for elem in iter {
-      self.push(elem);
+        for elem in iter {
+            self.push(elem);
+        }
     }
-  }
 }
 
 /// An element of the document's preamble.
@@ -251,9 +254,9 @@ impl Preamble {
     }
 
     /// Interface of most commonly used way to write a `/newcommand` line in latex.  
-    /// If you want to create `/newcommand` in 
-    /// other ways(like add default argument or do not assign the num of arguments), 
-    /// please use `push` method in `Preamble` struct. 
+    /// If you want to create `/newcommand` in
+    /// other ways(like add default argument or do not assign the num of arguments),
+    /// please use `push` method in `Preamble` struct.
     pub fn new_command(
         &mut self,
         name: &str,
@@ -262,10 +265,10 @@ impl Preamble {
     ) -> &mut Self {
         self.contents.push(
             PreambleElement::NewCommand {
-                name: String::from(name),
-                args_num: Some(args_num),
-                default_arg: None,
-                definition: String::from(definition)
+            name: String::from(name),
+            args_num: Some(args_num),
+            default_arg: None,
+            definition: String::from(definition)
             }
         );
         self
@@ -298,8 +301,8 @@ impl Preamble {
 
 impl Extend<PreambleElement> for Preamble {
     fn extend<T: IntoIterator<Item=PreambleElement>>(&mut self, iter:T) {
-    for elem in iter {
-      self.push(elem);
+        for elem in iter {
+            self.push(elem);
+        }
     }
-  }
 }

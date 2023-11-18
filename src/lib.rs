@@ -111,6 +111,7 @@ mod equations;
 mod lists;
 mod paragraph;
 mod section;
+mod table;
 mod visitor;
 
 pub use document::{Document, DocumentClass, Element, Preamble, PreambleElement};
@@ -118,5 +119,6 @@ pub use equations::{Align, Equation};
 pub use lists::{Item, List, ListKind};
 pub use paragraph::{Paragraph, ParagraphElement};
 pub use section::Section;
+pub use table::{Table, TableColumnSettings, TableRow, ColumnAlignment};
 
 pub use visitor::{print, Visitor};
