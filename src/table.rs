@@ -1,17 +1,34 @@
-use std::{default, fmt::{Display, format}, ops::Deref, slice::Iter};
+//! https://en.wikibooks.org/wiki/LaTeX/Tables
+//! https://en.wikibooks.org/wiki/LaTeX/Tables#The_tabular_environment
+//!
+//! The `table` module provides a way to create latex tables. `Table` is an interface to the LaTeX `tabular` environment.
+
+use std::{
+    default,
+    fmt::{format, Display},
+    ops::Deref,
+    slice::Iter,
+};
 
 use document::Element;
 
-/// Column alignment.
-#[derive(Clone, Debug, Default, PartialEq)]
+/// Column alignment. Part of the "table spec" argument.
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub enum ColumnAlignment {
+    /// left-justified column
     #[default]
-    /// Align the equations to the left.
     Left,
-    /// Align the equations to the right.
+    /// right-justified column
     Right,
-    /// Align the equations to the center.
+    /// centered column
     Center,
+    // TODO: implement
+    // paragraph column with text vertically aligned at the top
+    // ParagraphTop
+    // paragraph column with text vertically aligned in the middle (requires array package)
+    // ParagraphMiddle
+    // paragraph column with text vertically aligned at the bottom (requires array package)
+    // ParagraphBottom
 }
 
 impl Display for ColumnAlignment {
@@ -24,12 +41,42 @@ impl Display for ColumnAlignment {
     }
 }
 
-/// A Table.
+/// A Table that can be added to a Document and rendered as a tabular environment.
+///
+/// # Example
+/// ```rust
+/// use latex::{Table};
+///
+/// let mut table = Table::new();
+///
+/// table.push_row(["a", "b"]);
+///
+/// table.push_row([1, 1]);
+///
+/// let mut doc = latex::Document::new(latex::DocumentClass::Article);
+///
+/// doc.push(latex::Element::Table(table));
+///
+/// let rendered = latex::print(&doc).unwrap();
+///
+/// let expected =
+/// r#"\documentclass{article}
+/// \begin{document}
+/// \begin{tabular}{ll}
+/// a & b \\
+/// 1 & 1 \\
+/// \end{tabular}
+/// \end{document}
+/// "#;
+///
+/// assert_eq!(rendered, expected)
+///
+/// ```
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Table {
-    /// The content of the table.
+    /// The content of the table as a vector of `TableRow`.
     pub content: Vec<TableRow>,
-    /// The colum settings of the table.
+    /// The colum settings of the table as `TableColumnSettingsWrapper` which can be either a typed struct or raw LaTeX.
     pub column_settings: TableColumnSettingsWrapper,
     custom_default_column_settings: Option<TableColumnSettings>,
 }
@@ -39,9 +86,9 @@ pub struct Table {
 pub struct TableRow {
     /// The content of the row.
     pub content: Vec<String>,
-    pub(crate) columns: usize,
+    pub(crate) columns: Option<usize>,
+    pub(crate) skip_explicit_new_row: bool,
 }
-
 
 impl TableRow {
     /// Pushes an item to the row.
@@ -54,6 +101,7 @@ impl TableRow {
     }
 }
 
+/// The Table Column Settings Wrapper representing either a typed or raw `table spec` argument of the `tabular` environment.
 #[derive(Clone, Debug, PartialEq)]
 pub enum TableColumnSettingsWrapper {
     /// Column settings as typed struct.
@@ -68,16 +116,60 @@ impl Default for TableColumnSettingsWrapper {
     }
 }
 
-/// The Table Colum Settings
-#[derive(Clone, Debug, Default, PartialEq)]
+/// The struct representing a typed `table spec` argument of the `tabular` environment.
+///
+/// ```rust
+/// use latex::{Table, TableColumnSettings};
+///
+/// let mut table = Table::new();
+///
+/// table.push_row(["a", "b"]);
+/// table.push_row([1, 1]);
+///
+/// let column_settings = TableColumnSettings::default().alignment(latex::ColumnAlignment::Center);
+/// table.column_settings = vec![column_settings; 2].into();
+///
+/// let mut doc = latex::Document::new(latex::DocumentClass::Article);
+/// doc.push(latex::Element::Table(table));
+///
+/// let rendered = latex::print(&doc).unwrap();
+///
+/// let expected =
+/// r#"\documentclass{article}
+/// \begin{document}
+/// \begin{tabular}{cc}
+/// a & b \\
+/// 1 & 1 \\
+/// \end{tabular}
+/// \end{document}
+/// "#;
+///
+/// assert_eq!(rendered, expected)
+///
+/// ```
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct TableColumnSettings {
     /// The alignment of the colum.
     pub alignment: ColumnAlignment,
 }
 
+impl TableColumnSettings {
+    /// Change the alignment of the column.
+    pub fn alignment(&mut self, column_alignment: ColumnAlignment) -> Self {
+        self.alignment = column_alignment;
+        *self
+    }
+}
+
 impl Into<TableColumnSettingsWrapper> for Vec<TableColumnSettings> {
     fn into(self) -> TableColumnSettingsWrapper {
         TableColumnSettingsWrapper::Typed(self)
+    }
+}
+
+impl Into<TableColumnSettingsWrapper> for TableColumnSettings {
+    fn into(self) -> TableColumnSettingsWrapper {
+        TableColumnSettingsWrapper::Typed(vec![self])
     }
 }
 
@@ -93,33 +185,136 @@ impl Into<TableColumnSettingsWrapper> for &str {
     }
 }
 
+pub trait IntoTableRow {
+    fn into_table_row(self) -> TableRow;
+}
+
+impl<I, T> IntoTableRow for I
+where
+    I: IntoIterator<Item = T>,
+    T: Display + Clone,
+{
+    fn into_table_row(self) -> TableRow {
+        let mut row = TableRow::default();
+
+        row.columns = Some(0);
+
+        for e in self.into_iter() {
+            row.push_item(format!("{}", e));
+
+            let current_columns = match row.columns {
+                Some(columns) => columns,
+                None => 0,
+            };
+
+            row.columns = Some(current_columns + 1);
+        }
+
+        row
+    }
+}
+
+/// A Horizontal Line in a Table.
+/// # Example
+/// ```
+/// use latex::{Table, TableHLine};
+///
+/// let mut table = Table::new();
+///
+/// table.push_row(TableHLine::default());
+///
+/// assert_eq!(&table.content[0].content[0], r"\hline");
+/// ```
+pub struct TableHLine {}
+
+impl Default for TableHLine {
+    fn default() -> Self {
+        TableHLine {}
+    }
+}
+
+impl IntoTableRow for TableHLine {
+    fn into_table_row(self) -> TableRow {
+        let mut row = TableRow::default();
+
+        row.content = vec![r"\hline".to_string()];
+        row.skip_explicit_new_row = true;
+
+        row
+    }
+}
+
 impl Table {
-    /// Create a new table.
+    /// Creates a new table with default settings.
     pub fn new() -> Table {
         Table {
             ..Default::default()
         }
     }
 
-    /// Add a row to the table.
-    pub fn push_row<I, T>(&mut self, row_iter: I) -> &mut Self
+    /// Push a row to the end of the table.
+    /// # Example
+    /// ```
+    /// use latex::{Table};
+    /// let mut table = Table::new();
+    /// table.push_row(["a", "b"]);
+    /// ```
+    pub fn push_row<R>(&mut self, row: R) -> &mut Self
     where
-        I: IntoIterator<Item = T>,
-        T: Display + Clone,
-
+        R: IntoTableRow,
     {
-        let mut row = TableRow::default();
+        self.content.push(row.into_table_row());
+        self
+    }
 
-        for e in row_iter {
-            row.push_item(format!("{}", e));
-            row.columns += 1;
-        }
+    /// Insert a row at `index`.
+    /// # Example
+    /// ```
+    /// use latex::{Table};
+    /// let mut table = Table::new();
+    /// table.insert_row(0, ["a", "b"]);
+    /// ```
+    /// # Panics
+    /// Panics if the index is out of bounds.
+    pub fn insert_row<R>(&mut self, index: usize, row: R) -> &mut Self
+    where
+        R: IntoTableRow,
+    {
+        self.content.insert(index, row.into_table_row());
+        self
+    }
 
-        self.content.push(row);
+    /// Replace a row at `index`.
+    /// # Example
+    /// ```
+    /// use latex::{Table};
+    /// let mut table = Table::new();
+    /// table.push_row(["a", "b"]);
+    /// table.replace_row(0, ["c", "d"]);
+    /// ```
+    /// # Panics
+    /// Panics if the index is out of bounds.
+    pub fn replace_row<R>(&mut self, index: usize, row: R) -> &mut Self
+    where
+        R: IntoTableRow,
+    {
+        self.content[index] = row.into_table_row();
         self
     }
 
     /// Iterate over the rows in this table.
+    /// # Example
+    /// ```
+    /// use latex::{Table};
+    /// let mut table = Table::new();
+    ///
+    /// table.push_row(["a", "b"]);
+    /// table.push_row(["c", "d"]);
+    ///
+    /// for row in table.iter_row() {
+    ///    println!("{:?}", row);
+    /// }
+    /// ```
     pub fn iter_row(&self) -> Iter<TableRow> {
         self.content.iter()
     }
@@ -129,33 +324,40 @@ impl Table {
         self.content.is_empty()
     }
 
-    /// Get the maximum number of colums of all rows.
+    /// Get the maximum number of columns of all rows.
+    /// # Example
+    /// ```
+    /// use latex::{Table};
+    /// let mut table = Table::new();
+    ///
+    /// table.push_row(["a", "b"]);
+    /// table.push_row(["c", "d", "e"]);
+    ///
+    /// assert_eq!(table.number_columns(), 3);
     pub fn number_columns(&self) -> usize {
         self.iter_row().fold(0, |acc, row| {
-            if row.columns > acc {
-                row.columns
+            let columns = row.columns.unwrap_or(0);
+
+            if columns > acc {
+                columns
             } else {
                 acc
             }
         })
     }
 
-    /// Set the colum settings for all columns.
-    pub fn set_default_column_settings(&mut self, column_settings: TableColumnSettings) -> &mut Self {
-        self.custom_default_column_settings = Some(column_settings.into());
-        self
-    }
-
-    /// Get the colum settings for all columns.
-    pub fn default_column_settings(&self) -> Option<&TableColumnSettings> {
-        self.custom_default_column_settings.as_ref()
-    }
-
-    /// Set colum settings for a specific column.
+    /// Replace column settings for a specific column. (Completely overrides the a column settings.)
+    ///
+    /// When used on a table with typed column settings, this method will replace the column settings for the specified column.
+    ///
+    /// When used on a table with raw column settings, this method will replace the column settings for the specified column and set all other columns to the default typed column settings.
     /// # Panics
     /// Panics if the column does not exist.
-    pub fn set_column_settings(&mut self, column: usize, column_settings: TableColumnSettings) 
-    {
+    pub fn replace_column_settings(
+        &mut self,
+        column: usize,
+        column_settings: TableColumnSettings,
+    ) -> &mut Self {
         if column >= self.number_columns() {
             // TODO: panic?
             panic!("Column {} does not exist", column);
@@ -163,11 +365,13 @@ impl Table {
 
         let mut current_settings = match &self.column_settings {
             TableColumnSettingsWrapper::Typed(settings) => settings.clone(),
-            TableColumnSettingsWrapper::Raw(_) => Vec::new(),
+            TableColumnSettingsWrapper::Raw(_) => vec![TableColumnSettings::default(); column],
         };
 
         current_settings[column] = column_settings;
 
         self.column_settings = current_settings.into();
+
+        self
     }
 }

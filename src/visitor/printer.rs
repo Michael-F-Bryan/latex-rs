@@ -1,15 +1,15 @@
-use std::{io::Write, borrow::BorrowMut};
+use std::{borrow::BorrowMut, io::Write};
 
-use crate::table::{TableRow, TableColumnSettings, TableColumnSettingsWrapper};
+use crate::table::{TableColumnSettings, TableColumnSettingsWrapper, TableRow};
 
 use super::Visitor;
 use document::{Document, DocumentClass, Element, Preamble, PreambleElement};
 use equations::{Align, Equation};
 use failure::Error;
 use lists::{Item, List};
-use table::Table;
 use paragraph::{Paragraph, ParagraphElement};
 use section::Section;
+use table::Table;
 
 /// Print a document to a string.
 pub fn print(doc: &Document) -> Result<String, Error> {
@@ -112,7 +112,7 @@ where
                     name,
                     args_num,
                     default_arg,
-                    definition
+                    definition,
                 } => {
                     write!(self.writer, r"\newcommand{{\{}}}", name)?;
                     if let Some(num) = args_num {
@@ -124,7 +124,7 @@ where
                     writeln!(self.writer, r"{{")?;
                     writeln!(self.writer, "{}", definition)?;
                     writeln!(self.writer, r"}}")?;
-                },
+                }
                 PreambleElement::UserDefined(s) => writeln!(self.writer, r"{}", s)?,
             }
         }
@@ -163,43 +163,31 @@ where
     }
 
     fn visit_table(&mut self, table: &Table) -> Result<(), Error> {
-        let columns = table.number_columns();
-
-        let default_settings = match table.default_column_settings() {
-            Some(settings) => Some(settings.clone()),
-            None => None,
-        };
+        let table_columns = table.number_columns();
 
         let mut column_settings = table.column_settings.clone();
 
         match column_settings.borrow_mut() {
             TableColumnSettingsWrapper::Typed(settings) => {
-                match default_settings {
-                    Some(default_settings) => {
-                        for _ in 0..columns {
-                            settings.push(default_settings.clone());
-                        }
+                match table_columns.cmp(&settings.len()) {
+                    std::cmp::Ordering::Less => {
+                        settings.truncate(table_columns);
                     }
-                    None => {
-                        // TODO: Is this wanted behaviour? or should we error on mismatched?
-                        match columns.cmp(&settings.len()) {
-                            std::cmp::Ordering::Less => {
-                                settings.truncate(columns);
-                            }
-                            std::cmp::Ordering::Greater => {
-                                for _ in 0..columns - settings.len() {
-                                    settings.push(Default::default());
-                                }
-                            }
-                            std::cmp::Ordering::Equal => (),
-                        }
-        
-                    }
-                }
-            },
-            TableColumnSettingsWrapper::Raw(_) => ()
-        }
+                    std::cmp::Ordering::Greater => {
+                        let last_existing = match settings.get(settings.len() - 1) {
+                            Some(setting) => setting.clone(),
+                            None => TableColumnSettings::default(),
+                        };
 
+                        for _ in 0..table_columns - settings.len() {
+                            settings.push(last_existing.clone());
+                        }
+                    }
+                    std::cmp::Ordering::Equal => (),
+                }
+            }
+            TableColumnSettingsWrapper::Raw(_) => (),
+        }
 
         let column_settings: String = match column_settings {
             TableColumnSettingsWrapper::Typed(settings) => {
@@ -207,18 +195,14 @@ where
 
                 for typed_setting in settings {
                     let alignment = &typed_setting.alignment;
-                    
-                    setting.push_str(&format!("{}", alignment));       
+
+                    setting.push_str(&format!("{}", alignment));
                 }
 
                 setting
-            },
-            TableColumnSettingsWrapper::Raw(setting) => {
-                setting.to_string()
             }
+            TableColumnSettingsWrapper::Raw(setting) => setting.to_string(),
         };
-
-
 
         writeln!(self.writer, r"\begin{{tabular}}{{{}}}", column_settings)?;
 
@@ -226,16 +210,20 @@ where
             let mut row = row.clone();
 
             // TODO: Is this wanted behaviour? or should we error on mismatched?
-            match columns.cmp(&row.columns) {
-                std::cmp::Ordering::Less => {
-                    row.content.truncate(columns);
-                }
-                std::cmp::Ordering::Greater => {
-                    for _ in 0..columns - row.columns {
-                        row.content.push(String::new());
+
+            match row.columns {
+                Some(row_columns) => match table_columns.cmp(&row_columns) {
+                    std::cmp::Ordering::Less => {
+                        row.content.truncate(table_columns);
                     }
-                }
-                std::cmp::Ordering::Equal => (),
+                    std::cmp::Ordering::Greater => {
+                        for _ in 0..table_columns - row_columns {
+                            row.content.push(String::new());
+                        }
+                    }
+                    std::cmp::Ordering::Equal => (),
+                },
+                None => (),
             }
 
             self.visit_table_row(&row)?;
@@ -251,11 +239,17 @@ where
 
         for (index, cell) in row.content.iter().enumerate() {
             write!(self.writer, "{}", cell)?;
-            if index != last {
+            if index != last && row.columns.is_some() {
                 write!(self.writer, " & ")?;
             }
         }
-        writeln!(self.writer, r" \\")?;
+
+        if !row.skip_explicit_new_row {
+            writeln!(self.writer, r" \\")?;
+        } else {
+            writeln!(self.writer, "")?;
+        }
+
         Ok(())
     }
 
@@ -472,14 +466,12 @@ mod tests {
 "#;
         let mut buffer = Vec::new();
         let mut preamble = Preamble::default();
-        preamble.push(
-            PreambleElement::NewCommand {
+        preamble.push(PreambleElement::NewCommand {
             name: String::from("Love"),
             args_num: Some(3),
             default_arg: Some(String::from("likes")),
-            definition: String::from("#2 #1 #3")
-            }
-        );
+            definition: String::from("#2 #1 #3"),
+        });
 
         {
             let mut printer = Printer::new(&mut buffer);

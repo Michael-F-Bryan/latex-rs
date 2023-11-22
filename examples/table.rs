@@ -1,12 +1,15 @@
 extern crate latex;
 
-use latex::{print, Document, DocumentClass, Element, Section, Table, TableColumnSettings, ColumnAlignment};
+use latex::{
+    print, ColumnAlignment, Document, DocumentClass, Element, Section, Table, TableColumnSettings,
+    TableHLine,
+};
 
 fn create_document() -> Document {
     let mut doc = Document::new(DocumentClass::Article);
 
-    doc.preamble.use_package("array");  // <-- column settings
-    
+    doc.preamble.use_package("array"); // <-- column settings
+
     doc.preamble.title("My Table");
     doc.preamble.author("Noah Nachtigall");
 
@@ -30,8 +33,10 @@ fn create_document() -> Document {
 
     table.column_settings = raw_column_settings.into();
 
-    table.push_row(["as", "b"]);
-    table.push_row([1, 1, 3]);
+    table
+        .push_row(["as", "b"])
+        .push_row(TableHLine::default())
+        .push_row([1, 1, 3]);
 
     section_1.push(Element::Table(table));
 

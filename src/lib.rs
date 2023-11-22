@@ -119,6 +119,6 @@ pub use equations::{Align, Equation};
 pub use lists::{Item, List, ListKind};
 pub use paragraph::{Paragraph, ParagraphElement};
 pub use section::Section;
-pub use table::{Table, TableColumnSettings, TableRow, ColumnAlignment};
+pub use table::{ColumnAlignment, Table, TableColumnSettings, TableHLine, TableRow};
 
 pub use visitor::{print, Visitor};
