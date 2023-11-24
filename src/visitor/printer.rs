@@ -1,4 +1,6 @@
-use std::io::Write;
+use std::{borrow::BorrowMut, io::Write};
+
+use crate::table::{TableColumnSettings, TableColumnSettingsWrapper, TableRow};
 
 use super::Visitor;
 use document::{Document, DocumentClass, Element, Preamble, PreambleElement};
@@ -7,6 +9,7 @@ use failure::Error;
 use lists::{Item, List};
 use paragraph::{Paragraph, ParagraphElement};
 use section::Section;
+use table::Table;
 
 /// Print a document to a string.
 pub fn print(doc: &Document) -> Result<String, Error> {
@@ -109,7 +112,7 @@ where
                     name,
                     args_num,
                     default_arg,
-                    definition
+                    definition,
                 } => {
                     write!(self.writer, r"\newcommand{{\{}}}", name)?;
                     if let Some(num) = args_num {
@@ -121,7 +124,7 @@ where
                     writeln!(self.writer, r"{{")?;
                     writeln!(self.writer, "{}", definition)?;
                     writeln!(self.writer, r"}}")?;
-                },
+                }
                 PreambleElement::UserDefined(s) => writeln!(self.writer, r"{}", s)?,
             }
         }
@@ -159,6 +162,97 @@ where
         Ok(())
     }
 
+    fn visit_table(&mut self, table: &Table) -> Result<(), Error> {
+        let table_columns = table.number_columns();
+
+        let mut column_settings = table.column_settings.clone();
+
+        match column_settings.borrow_mut() {
+            TableColumnSettingsWrapper::Typed(settings) => {
+                match table_columns.cmp(&settings.len()) {
+                    std::cmp::Ordering::Less => {
+                        settings.truncate(table_columns);
+                    }
+                    std::cmp::Ordering::Greater => {
+                        let last_existing = match settings.get(settings.len().saturating_sub(1)) {
+                            Some(setting) => setting.clone(),
+                            None => TableColumnSettings::default(),
+                        };
+
+                        for _ in 0..table_columns - settings.len() {
+                            settings.push(last_existing.clone());
+                        }
+                    }
+                    std::cmp::Ordering::Equal => (),
+                }
+            }
+            TableColumnSettingsWrapper::Raw(_) => (),
+        }
+
+        let column_settings: String = match column_settings {
+            TableColumnSettingsWrapper::Typed(settings) => {
+                let mut setting = String::new();
+
+                for typed_setting in settings {
+                    let alignment = &typed_setting.alignment;
+
+                    setting.push_str(&format!("{}", alignment));
+                }
+
+                setting
+            }
+            TableColumnSettingsWrapper::Raw(setting) => setting.to_string(),
+        };
+
+        writeln!(self.writer, r"\begin{{tabular}}{{{}}}", column_settings)?;
+
+        for row in table.iter_row() {
+            let mut row = row.clone();
+
+            // TODO: Is this wanted behaviour? or should we error on mismatched?
+
+            match row.columns {
+                Some(row_columns) => match table_columns.cmp(&row_columns) {
+                    std::cmp::Ordering::Less => {
+                        row.content.truncate(table_columns);
+                    }
+                    std::cmp::Ordering::Greater => {
+                        for _ in 0..table_columns - row_columns {
+                            row.content.push(String::new());
+                        }
+                    }
+                    std::cmp::Ordering::Equal => (),
+                },
+                None => (),
+            }
+
+            self.visit_table_row(&row)?;
+        }
+
+        writeln!(self.writer, r"\end{{tabular}}")?;
+
+        Ok(())
+    }
+
+    fn visit_table_row(&mut self, row: &TableRow) -> Result<(), Error> {
+        let last = row.content.len() - 1;
+
+        for (index, cell) in row.content.iter().enumerate() {
+            write!(self.writer, "{}", cell)?;
+            if index != last && row.columns.is_some() {
+                write!(self.writer, " & ")?;
+            }
+        }
+
+        if !row.skip_explicit_new_row {
+            writeln!(self.writer, r" \\")?;
+        } else {
+            writeln!(self.writer, "")?;
+        }
+
+        Ok(())
+    }
+
     fn visit_element(&mut self, element: &Element) -> Result<(), Error> {
         match *element {
             Element::Para(ref p) => self.visit_paragraph(p)?,
@@ -177,6 +271,7 @@ where
                 writeln!(self.writer, r"\end{{{}}}", name)?;
             }
             Element::List(ref list) => self.visit_list(list)?,
+            Element::Table(ref table) => self.visit_table(table)?,
             Element::Input(ref s) => writeln!(self.writer, "\\input{{{}}}", s)?,
 
             Element::_Other => unreachable!(),
@@ -354,7 +449,7 @@ mod tests {
         let mut buffer = Vec::new();
         let mut preamble = Preamble::default();
         preamble.new_command("Love", 2, "#1 loves #2");
-        
+
         {
             let mut printer = Printer::new(&mut buffer);
             printer.visit_preamble(&preamble).unwrap();
@@ -371,15 +466,13 @@ mod tests {
 "#;
         let mut buffer = Vec::new();
         let mut preamble = Preamble::default();
-        preamble.push(
-            PreambleElement::NewCommand {
-                name: String::from("Love"),
-                args_num: Some(3),
-                default_arg: Some(String::from("likes")),
-                definition: String::from("#2 #1 #3")
-            }
-        );
-        
+        preamble.push(PreambleElement::NewCommand {
+            name: String::from("Love"),
+            args_num: Some(3),
+            default_arg: Some(String::from("likes")),
+            definition: String::from("#2 #1 #3"),
+        });
+
         {
             let mut printer = Printer::new(&mut buffer);
             printer.visit_preamble(&preamble).unwrap();
