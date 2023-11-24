@@ -116,6 +116,17 @@ impl Default for TableColumnSettingsWrapper {
     }
 }
 
+/// Checks if the `TableColumnSettingsWrapper` is empty.
+/// Either `Vec` or `String` is empty.
+impl TableColumnSettingsWrapper {
+    pub fn is_empty(&self) -> bool {
+        match self {
+            TableColumnSettingsWrapper::Typed(settings) => settings.is_empty(),
+            TableColumnSettingsWrapper::Raw(settings) => settings.is_empty(),
+        }
+    }
+}
+
 /// The struct representing a typed `table spec` argument of the `tabular` environment.
 ///
 /// ```rust
@@ -246,6 +257,11 @@ impl IntoTableRow for TableHLine {
 
 impl Table {
     /// Creates a new table with default settings.
+    /// # Example
+    /// ```rust
+    /// use latex::{Table};
+    /// let mut table = Table::new();
+    /// ```
     pub fn new() -> Table {
         Table {
             ..Default::default()

@@ -174,7 +174,7 @@ where
                         settings.truncate(table_columns);
                     }
                     std::cmp::Ordering::Greater => {
-                        let last_existing = match settings.get(settings.len() - 1) {
+                        let last_existing = match settings.get(settings.len().saturating_sub(1)) {
                             Some(setting) => setting.clone(),
                             None => TableColumnSettings::default(),
                         };
